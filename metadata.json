@@ -1,0 +1,6 @@
+{
+  "name": "Affiliate Content Studio",
+  "description": "Automate and manage social media content generation from Amazon affiliate product links.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
