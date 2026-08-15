@@ -367,6 +367,7 @@ export default function PlatformSettings() {
         {renderPlatformRow('amazon', 'Amazon Automation Engine', 'Configure Top 1% BSR daily fetcher.', <Bot size={24} />, 'bg-amber-100', 'text-amber-600')}
         {renderPlatformRow('gemini', 'Google AI Studio', 'Bring your own key for the AI agents.', <Sparkles size={24} />, 'bg-purple-100', 'text-purple-600')}
       </div>
+      </div>
     </>
   );
 }
