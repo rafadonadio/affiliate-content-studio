@@ -1,5 +1,6 @@
 import express from "express";
 import { processAssistantCommand } from "../services/llm.js";
+import { sendWhatsAppMessage } from "../services/whatsapp.js";
 
 export const whatsappRouter = express.Router();
 
@@ -52,12 +53,22 @@ whatsappRouter.post("/webhook", async (req, res) => {
       }
     }
 
-    if (command) {
+    if (command && senderId) {
       const action = await processAssistantCommand(command, { platform: "whatsapp", senderId });
       
       console.log(`WhatsApp Command mapped to: ${action.action}`);
-      // Here we would use the WhatsApp API to send `action.reply` back to the user
-      // Example: sendWhatsAppMessage(senderId, action.reply);
+      
+      // Enviar la respuesta usando Meta Cloud API
+      if (action.reply) {
+        const success = await sendWhatsAppMessage(senderId, action.reply);
+        
+        // Registrar en logs de base de datos
+        const db = await getDb();
+        await db.run(
+          "INSERT INTO execution_logs (action, details, status) VALUES (?, ?, ?)",
+          ["WhatsApp Chatbot", `A: ${senderId} | Msj: ${action.reply.substring(0, 50)}...`, success ? "Success" : "Failed"]
+        );
+      }
     }
 
     res.sendStatus(200);

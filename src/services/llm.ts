@@ -23,7 +23,7 @@ Available Actions:
 Respond ONLY with a JSON object containing:
 - "action": The string identifier of the action.
 - "payload": An optional object with required parameters.
-- "reply": A short, friendly voice-friendly response to the user confirming what you are doing.
+- "reply": A short, friendly response to the user confirming what you are doing. If the context platform is "whatsapp", use emojis, keep it under 2 sentences, and DO NOT use markdown formatting (like ** or #) because WhatsApp parses it differently.
 
 Context of the user: ${JSON.stringify(context || {})}
 `;

@@ -17,10 +17,12 @@ import { Calendar as CalendarIcon, BarChart3, ShieldCheck, LogOut } from 'lucide
 import { useAuth } from './components/AuthContext';
 import { Login } from './components/Login';
 import Paywall from './components/Paywall';
+import LandingPage from './components/LandingPage';
 
 export default function App() {
   const { user, loading, logout } = useAuth();
   const [view, setView] = useState<'dashboard' | 'calendar' | 'analytics' | 'settings' | 'admin'>('dashboard');
+  const [showLogin, setShowLogin] = useState(false);
 
 
   useEffect(() => {
@@ -48,7 +50,20 @@ export default function App() {
   }
 
   if (!user) {
-    return <Login />;
+    if (showLogin) {
+      return (
+        <div className="relative">
+          <button 
+            onClick={() => setShowLogin(false)}
+            className="absolute top-6 left-6 z-50 text-neutral-500 hover:text-black font-medium flex items-center bg-white px-4 py-2 rounded-full shadow"
+          >
+            ← Volver al Inicio
+          </button>
+          <Login />
+        </div>
+      );
+    }
+    return <LandingPage onLoginClick={() => setShowLogin(true)} />;
   }
 
   // Intercept unpaid users (Admins bypass the paywall to configure settings)
