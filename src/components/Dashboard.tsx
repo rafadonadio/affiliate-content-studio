@@ -3,8 +3,10 @@ import { toast } from 'sonner';
 import { FileText, RefreshCw, BarChart, Edit3, CalendarPlus, Check, X } from 'lucide-react';
 import ExecutionLogs from './ExecutionLogs';
 import ImageEditor from './ImageEditor';
+import { useLanguage } from './LanguageContext';
 
 export default function Dashboard() {
+  const { t } = useLanguage();
   const [drafts, setDrafts] = useState<any[]>([]);
   
   useEffect(() => {
@@ -140,16 +142,16 @@ export default function Dashboard() {
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm">
-          <div className="flex items-center gap-3 mb-2 text-neutral-500"><FileText size={20}/> Active Queue</div>
+          <div className="flex items-center gap-3 mb-2 text-neutral-500"><FileText size={20}/> {t.dashboard.socialQueue}</div>
           <div className="text-3xl font-bold">12</div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm">
-          <div className="flex items-center gap-3 mb-2 text-neutral-500"><BarChart size={20}/> Total Published</div>
+          <div className="flex items-center gap-3 mb-2 text-neutral-500"><BarChart size={20}/> {t.dashboard.recentActivity}</div>
           <div className="text-3xl font-bold">45</div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm">
           <div className="flex items-center gap-3 mb-2 text-neutral-500"><RefreshCw size={20}/> Status</div>
-          <div className="text-xl font-medium text-emerald-600">Running</div>
+          <div className="text-xl font-medium text-emerald-600">{t.dashboard.activeStatus}</div>
         </div>
       </div>
 

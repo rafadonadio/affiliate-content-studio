@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
+import { useLanguage } from './LanguageContext';
 import { Bot, Lock, LogIn } from 'lucide-react';
 
 export function Login() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,8 +32,8 @@ export function Login() {
           <div className="mx-auto w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/30">
             <Bot size={32} />
           </div>
-          <h2 className="text-2xl font-bold mb-2">SaaS Login</h2>
-          <p className="text-neutral-400 text-sm">Sign in to verify your Pro License and unlock Jarvis.</p>
+          <h2 className="text-2xl font-bold mb-2">{t.login.title}</h2>
+          <p className="text-neutral-400 text-sm">{t.login.subtitle}</p>
         </div>
 
         <div className="p-8">
@@ -43,7 +45,7 @@ export function Login() {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t.login.email}</label>
               <input 
                 type="email" 
                 required
@@ -55,7 +57,7 @@ export function Login() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t.login.password}</label>
               <input 
                 type="password" 
                 required
@@ -71,17 +73,17 @@ export function Login() {
               disabled={isLoading}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 disabled:opacity-70"
             >
-              {isLoading ? 'Verifying License...' : (
+              {isLoading ? t.login.verifying : (
                 <>
                   <LogIn size={20} />
-                  Sign In & Verify
+                  {t.login.signInBtn}
                 </>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm text-neutral-500 flex items-center justify-center gap-1">
-            <Lock size={14} /> Secure Cloud Licensing
+            <Lock size={14} /> {t.login.secure}
           </div>
         </div>
       </div>
