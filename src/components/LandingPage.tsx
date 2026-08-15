@@ -19,7 +19,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             onClick={onLoginClick}
             className="px-6 py-2.5 rounded-full bg-white text-black font-semibold hover:bg-neutral-200 transition-colors"
           >
-            Iniciar Sesión
+            Sign In
           </button>
         </div>
       </nav>
@@ -30,19 +30,19 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
         
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium mb-8 text-indigo-300">
-            <Bot size={16} /> Potenciado por Gemini AI
+            <Bot size={16} /> Powered by Gemini AI
           </div>
           <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-8 bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent">
-            Automatiza tus Ventas <br /> con Inteligencia Artificial.
+            Automate Amazon Affiliates <br /> with Artificial Intelligence.
           </h1>
           <p className="text-xl md:text-2xl text-neutral-400 max-w-3xl mx-auto mb-12 leading-relaxed">
-            Genera contenido para redes sociales, gestiona programas de afiliados y atiende a tus clientes por WhatsApp 24/7. Todo en piloto automático.
+            Generate viral content for Instagram, YouTube, and Pinterest. Grow your passive income and let Jarvis handle the posting. (TikTok integration coming soon).
           </p>
           <button 
             onClick={onLoginClick}
             className="group px-8 py-4 rounded-full bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-500 transition-all flex items-center gap-2 mx-auto shadow-[0_0_40px_rgba(79,70,229,0.3)] hover:shadow-[0_0_60px_rgba(79,70,229,0.5)]"
           >
-            Comenzar Gratis
+            Start for Free
             <ArrowRight className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -52,8 +52,8 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
       <section className="py-32 px-6 border-t border-white/5 bg-neutral-950">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">El Flujo de Trabajo Perfecto</h2>
-            <p className="text-xl text-neutral-400">Deja que Jarvis se encargue del trabajo pesado mientras tú escalas tu negocio.</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">The Perfect Workflow</h2>
+            <p className="text-xl text-neutral-400">Let Jarvis do the heavy lifting while you scale your affiliate commissions.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -61,9 +61,9 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               <div className="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mb-6">
                 <Globe size={28} />
               </div>
-              <h3 className="text-2xl font-bold mb-4">1. Conecta tus Cuentas</h3>
+              <h3 className="text-2xl font-bold mb-4">1. Connect your Accounts</h3>
               <p className="text-neutral-400 leading-relaxed">
-                Vincula tus cuentas de Instagram, Facebook y tu número oficial de WhatsApp Cloud API en un solo lugar.
+                Link your Amazon Affiliate account, Instagram, YouTube, and Pinterest seamlessly.
               </p>
             </div>
 
@@ -74,9 +74,9 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               <div className="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mb-6">
                 <LayoutDashboard size={28} />
               </div>
-              <h3 className="text-2xl font-bold mb-4">2. Jarvis Analiza y Crea</h3>
+              <h3 className="text-2xl font-bold mb-4">2. Jarvis Analyzes & Creates</h3>
               <p className="text-neutral-400 leading-relaxed relative z-10">
-                La IA analiza tendencias, redacta copys persuasivos y genera imágenes para tus productos de afiliados automáticamente.
+                The AI fetches top-selling Amazon products, writes persuasive copy, and generates images specifically for social media.
               </p>
             </div>
 
@@ -84,9 +84,9 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               <div className="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mb-6">
                 <MessageCircle size={28} />
               </div>
-              <h3 className="text-2xl font-bold mb-4">3. Publica y Responde</h3>
+              <h3 className="text-2xl font-bold mb-4">3. Auto-Publish & Engage</h3>
               <p className="text-neutral-400 leading-relaxed">
-                El sistema programa las publicaciones y el chatbot de WhatsApp responde a los clientes cerrando ventas por ti.
+                The system schedules your affiliate posts automatically. Need help? Engage with your audience using our WhatsApp chatbot integration.
               </p>
             </div>
           </div>
@@ -95,12 +95,12 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
       
       {/* Footer CTA */}
       <section className="py-32 px-6 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold mb-8">¿Listo para transformar tu negocio?</h2>
+        <h2 className="text-4xl md:text-5xl font-bold mb-8">Ready to boost your affiliate income?</h2>
         <button 
           onClick={onLoginClick}
           className="px-8 py-4 rounded-full bg-white text-black font-bold text-lg hover:bg-neutral-200 transition-colors"
         >
-          Crear mi cuenta ahora
+          Create my account now
         </button>
       </section>
     </div>

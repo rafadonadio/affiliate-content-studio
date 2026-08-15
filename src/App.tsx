@@ -57,7 +57,7 @@ export default function App() {
             onClick={() => setShowLogin(false)}
             className="absolute top-6 left-6 z-50 text-neutral-500 hover:text-black font-medium flex items-center bg-white px-4 py-2 rounded-full shadow"
           >
-            ← Volver al Inicio
+            ← Back to Home
           </button>
           <Login />
         </div>
