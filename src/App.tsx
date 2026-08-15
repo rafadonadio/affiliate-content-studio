@@ -11,9 +11,12 @@ import PlatformSettings from './components/PlatformSettings';
 import CalendarView from './components/CalendarView';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import { AssistantConsole } from './components/AssistantConsole';
-import { Calendar as CalendarIcon, BarChart3 } from 'lucide-react';
+import { Calendar as CalendarIcon, BarChart3, LogOut } from 'lucide-react';
+import { useAuth } from './components/AuthContext';
+import { Login } from './components/Login';
 
 export default function App() {
+  const { user, loading, logout } = useAuth();
   const [view, setView] = useState<'dashboard' | 'calendar' | 'analytics' | 'settings'>('dashboard');
 
   useEffect(() => {
@@ -35,6 +38,14 @@ export default function App() {
       eventSource.close();
     };
   }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-neutral-50 flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -67,6 +78,14 @@ export default function App() {
                 className={`p-2 rounded-full ${view === 'settings' ? 'bg-neutral-100' : 'hover:bg-neutral-100'}`}
               >
                 <Settings size={20}/>
+              </button>
+              <div className="w-px h-6 bg-neutral-200 self-center mx-2"></div>
+              <button 
+                onClick={logout}
+                className="p-2 rounded-full hover:bg-red-50 text-neutral-400 hover:text-red-500 transition-colors"
+                title="Log out"
+              >
+                <LogOut size={20}/>
               </button>
             </div>
           </div>

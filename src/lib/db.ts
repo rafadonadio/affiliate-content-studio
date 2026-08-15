@@ -1,75 +1,155 @@
-import sqlite3 from 'sqlite3';
-import { open, Database } from 'sqlite';
-import path from 'path';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-let db: Database | null = null;
+dotenv.config();
+
+let pool: mysql.Pool | null = null;
+
+// Helper to handle SQLite-like parameter replacement ? to ? (MySQL uses ? too)
+// However, MySQL uses ? for positional, but returning results is slightly different
+class DBWrapper {
+  private pool: mysql.Pool;
+
+  constructor(pool: mysql.Pool) {
+    this.pool = pool;
+  }
+
+  // Equivalente a sqlite db.run(sql, params)
+  async run(sql: string, params: any[] = []): Promise<{ lastID?: number, changes?: number }> {
+    // Basic conversion for SQLite's INSERT OR REPLACE to MySQL's ON DUPLICATE KEY UPDATE
+    if (sql.includes('INSERT OR REPLACE INTO')) {
+       // Since full regex conversion of SQLite INSERT OR REPLACE is complex, 
+       // this wrapper expects developers to write standard MySQL ON DUPLICATE KEY 
+       // but logs a warning if SQLite syntax is used.
+       if (!sql.includes('ON DUPLICATE KEY')) {
+         console.warn('[DB] Warning: SQLite INSERT OR REPLACE used. This may fail in MySQL.');
+       }
+    }
+    const [result] = await this.pool.execute(sql, params) as [mysql.ResultSetHeader, any];
+    return {
+      lastID: result.insertId,
+      changes: result.affectedRows
+    };
+  }
+
+  // Equivalente a sqlite db.all(sql, params)
+  async all<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+    const [rows] = await this.pool.execute(sql, params);
+    return rows as T[];
+  }
+
+  // Equivalente a sqlite db.get(sql, params)
+  async get<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
+    const [rows] = await this.pool.execute(sql, params);
+    const result = rows as T[];
+    return result.length > 0 ? result[0] : undefined;
+  }
+}
 
 export async function getDb() {
-  if (!db) {
-    db = await open({
-      filename: path.join(process.cwd(), 'database.sqlite'),
-      driver: sqlite3.Database
+  if (!pool) {
+    pool = mysql.createPool({
+      host: process.env.DB_HOST || '127.0.0.1',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'afs_db',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
     });
 
-    // Initialize schema
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS execution_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        action TEXT NOT NULL,
-        details TEXT,
-        status TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+    const dbWrapper = new DBWrapper(pool);
 
+    // Initialize schema using MySQL Dialect
+    await dbWrapper.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(255) PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await dbWrapper.run(`
+      CREATE TABLE IF NOT EXISTS execution_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        action VARCHAR(255) NOT NULL,
+        details TEXT,
+        status VARCHAR(50) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await dbWrapper.run(`
       CREATE TABLE IF NOT EXISTS scheduled_posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INT AUTO_INCREMENT PRIMARY KEY,
         product_link TEXT,
         caption TEXT,
         image_url TEXT,
-        platform TEXT,
+        platform VARCHAR(50),
         scheduled_for DATETIME,
-        status TEXT DEFAULT 'pending',
+        status VARCHAR(50) DEFAULT 'pending',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+      )
+    `);
 
+    await dbWrapper.run(`
       CREATE TABLE IF NOT EXISTS oauth_credentials (
-        platform TEXT PRIMARY KEY,
+        platform VARCHAR(50) PRIMARY KEY,
         access_token TEXT NOT NULL,
         refresh_token TEXT,
         expires_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+      )
+    `);
 
+    await dbWrapper.run(`
       CREATE TABLE IF NOT EXISTS app_configs (
-        platform TEXT PRIMARY KEY,
-        client_id TEXT NOT NULL,
-        client_secret TEXT NOT NULL,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+        platform VARCHAR(50) PRIMARY KEY,
+        client_id VARCHAR(255) NOT NULL,
+        client_secret VARCHAR(255) NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
 
+    await dbWrapper.run(`
       CREATE TABLE IF NOT EXISTS analytics (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        post_id INTEGER,
-        platform TEXT,
-        likes INTEGER,
-        clicks INTEGER,
-        comments INTEGER,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT,
+        platform VARCHAR(50),
+        likes INT,
+        clicks INT,
+        comments INT,
         date DATE,
-        category TEXT
-      );
+        category VARCHAR(100)
+      )
+    `);
 
+    await dbWrapper.run(`
       CREATE TABLE IF NOT EXISTS short_links (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        short_code TEXT UNIQUE NOT NULL,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        short_code VARCHAR(255) UNIQUE NOT NULL,
         original_url TEXT NOT NULL,
-        clicks INTEGER DEFAULT 0,
+        clicks INT DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+      )
+    `);
+
+    await dbWrapper.run(`
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stripe_customer_id VARCHAR(255) UNIQUE,
+        stripe_subscription_id VARCHAR(255) UNIQUE,
+        plan_id VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'inactive',
+        current_period_end DATETIME,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
     `);
 
     // Seed mock data for analytics if empty
-    const count = await db.get("SELECT COUNT(*) as count FROM analytics");
-    if (count.count === 0) {
+    const countRow = await dbWrapper.get<{count: number}>("SELECT COUNT(*) as count FROM analytics");
+    if (countRow && countRow.count === 0) {
       const mockData = [
         { platform: 'instagram', likes: 120, clicks: 45, comments: 12, date: '2026-08-01', category: 'Tech' },
         { platform: 'pinterest', likes: 85, clicks: 60, comments: 4, date: '2026-08-02', category: 'Home' },
@@ -80,13 +160,17 @@ export async function getDb() {
         { platform: 'instagram', likes: 180, clicks: 70, comments: 25, date: '2026-08-12', category: 'Tech' }
       ];
       
-      const stmt = await db.prepare("INSERT INTO analytics (post_id, platform, likes, clicks, comments, date, category) VALUES (?, ?, ?, ?, ?, ?, ?)");
       for (let i = 0; i < mockData.length; i++) {
         const item = mockData[i];
-        await stmt.run([i + 1, item.platform, item.likes, item.clicks, item.comments, item.date, item.category]);
+        await dbWrapper.run(
+          "INSERT INTO analytics (post_id, platform, likes, clicks, comments, date, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [i + 1, item.platform, item.likes, item.clicks, item.comments, item.date, item.category]
+        );
       }
-      await stmt.finalize();
     }
+    
+    return dbWrapper;
   }
-  return db;
+  
+  return new DBWrapper(pool);
 }

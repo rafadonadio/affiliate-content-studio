@@ -7,6 +7,9 @@ import { initAutomationEngine } from "./src/lib/automation.js";
 import { initEngagementBot } from "./src/lib/engagement.js";
 import { assistantRouter } from "./src/api/assistant.js";
 import { whatsappRouter } from "./src/api/whatsapp-webhook.js";
+import { stripeRouter } from "./src/api/stripe.js";
+import { stripeWebhookRouter } from "./src/api/stripe-webhook.js";
+import { authRouter } from "./src/api/auth.js";
 
 async function startServer() {
   const app = express();
@@ -24,6 +27,9 @@ async function startServer() {
 
   app.use("/api/assistant", assistantRouter);
   app.use("/api/whatsapp", whatsappRouter);
+  app.use("/api/stripe", stripeRouter);
+  app.use("/api/stripe/webhook", stripeWebhookRouter);
+  app.use("/api/auth", authRouter);
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
@@ -326,7 +332,7 @@ async function startServer() {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
       await db.run(
-        "INSERT OR REPLACE INTO app_configs (platform, client_id, client_secret) VALUES (?, ?, ?)",
+        "INSERT INTO app_configs (platform, client_id, client_secret) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE client_id = VALUES(client_id), client_secret = VALUES(client_secret)",
         [platform.toLowerCase(), client_id, client_secret]
       );
       res.json({ message: "App configuration saved successfully" });

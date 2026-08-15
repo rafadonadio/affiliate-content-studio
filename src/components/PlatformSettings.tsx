@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Instagram, Youtube, CheckCircle, XCircle, Settings, ChevronDown, ChevronUp, Bot, Sparkles, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { BillingSettings } from './BillingSettings';
 
 function ConfigForm({ platform, onSaved }: { platform: string, onSaved: () => void }) {
   const [clientId, setClientId] = useState('');
@@ -348,8 +349,11 @@ export default function PlatformSettings() {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl border border-neutral-200 shadow-sm max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-2">Platform Connections</h2>
+    <>
+      <BillingSettings />
+      <div className="bg-white p-8 rounded-xl border border-neutral-200 shadow-sm max-w-2xl mx-auto">
+        <h2 className="text-2xl font-bold mb-2">Platform Connections</h2>
+
       <p className="text-neutral-500 mb-8">
         1. Add your Developer App Credentials (Client ID & Secret).<br/>
         2. Click Connect to authorize with your active browser session.
@@ -363,6 +367,6 @@ export default function PlatformSettings() {
         {renderPlatformRow('amazon', 'Amazon Automation Engine', 'Configure Top 1% BSR daily fetcher.', <Bot size={24} />, 'bg-amber-100', 'text-amber-600')}
         {renderPlatformRow('gemini', 'Google AI Studio', 'Bring your own key for the AI agents.', <Sparkles size={24} />, 'bg-purple-100', 'text-purple-600')}
       </div>
-    </div>
+    </>
   );
 }

@@ -48,10 +48,10 @@ export async function getClient(platform: string) {
 
 export async function saveCredentials(platform: string, token: any) {
   const db = await getDb();
-  // Using REPLACE or INSERT ON CONFLICT depending on sqlite version. We'll use INSERT OR REPLACE
+  // Using INSERT ON DUPLICATE KEY UPDATE for MySQL
   await db.run(
-    `INSERT OR REPLACE INTO oauth_credentials (platform, access_token, refresh_token, expires_at) 
-     VALUES (?, ?, ?, ?)`,
+    `INSERT INTO oauth_credentials (platform, access_token, refresh_token, expires_at) 
+     VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE access_token = VALUES(access_token), refresh_token = VALUES(refresh_token), expires_at = VALUES(expires_at)`,
     [
       platform.toLowerCase(),
       token.access_token,

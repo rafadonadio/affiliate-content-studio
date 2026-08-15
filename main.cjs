@@ -1,12 +1,14 @@
 const { app, BrowserWindow } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
-const expressServer = require('./dist/server.cjs');
 
 // Disable hardware acceleration to prevent black screens on some systems
 app.disableHardwareAcceleration();
 
 let mainWindow;
+
+// You can change this URL once you deploy to Render.
+const RENDER_URL = 'https://afs-manager.onrender.com';
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -19,10 +21,9 @@ function createWindow() {
     title: "Affiliate Content Studio"
   });
 
-  // Since server.cjs starts Express on 5199 natively
-  // We just point electron to the localhost URL
   const loadUrl = () => {
-    mainWindow.loadURL('http://localhost:5199').catch(() => {
+    const url = app.isPackaged ? RENDER_URL : 'http://localhost:5199';
+    mainWindow.loadURL(url).catch(() => {
       // If server isn't up yet, retry in 500ms
       setTimeout(loadUrl, 500);
     });
@@ -36,9 +37,6 @@ function createWindow() {
 }
 
 app.on('ready', () => {
-  // Start the express server
-  expressServer;
-  
   createWindow();
 
   // Check for updates

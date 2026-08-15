@@ -1,0 +1,51 @@
+name: Deploy Updates to Hostinger
+
+on:
+  # Permite ejecutar este flujo manualmente desde la pestaña "Actions"
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest # Requerido para construir ejecutables de Windows (.exe)
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Next.js Landing Page
+        run: cd landing-page && npm install && npm run build
+
+      - name: Build and Package Electron App
+        run: npm run make-installer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy Landing Page to Hostinger Root
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: 22
+          source: "landing-page/out/*"
+          target: ${{ secrets.HOSTINGER_PATH }}
+          strip_components: 2
+
+      - name: Deploy Electron App to Downloads Folder
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: 22
+          source: "dist_electron/*"
+          target: "${{ secrets.HOSTINGER_PATH }}/downloads"
+          strip_components: 1
