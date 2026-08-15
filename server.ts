@@ -5,6 +5,8 @@ import { getDb } from "./src/lib/db.js";
 import { initQueue } from "./src/lib/queue.js";
 import { initAutomationEngine } from "./src/lib/automation.js";
 import { initEngagementBot } from "./src/lib/engagement.js";
+import { assistantRouter } from "./src/api/assistant.js";
+import { whatsappRouter } from "./src/api/whatsapp-webhook.js";
 
 async function startServer() {
   const app = express();
@@ -19,6 +21,9 @@ async function startServer() {
   initAutomationEngine();
   // Initialize Engagement Bot
   initEngagementBot();
+
+  app.use("/api/assistant", assistantRouter);
+  app.use("/api/whatsapp", whatsappRouter);
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });

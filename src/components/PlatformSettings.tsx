@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Instagram, Youtube, CheckCircle, XCircle, Settings, ChevronDown, ChevronUp, Bot, Sparkles } from 'lucide-react';
+import { Instagram, Youtube, CheckCircle, XCircle, Settings, ChevronDown, ChevronUp, Bot, Sparkles, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 function ConfigForm({ platform, onSaved }: { platform: string, onSaved: () => void }) {
@@ -175,6 +175,68 @@ function GeminiConfigForm({ onSaved }: { onSaved: () => void }) {
   );
 }
 
+function WhatsAppConfigForm({ onSaved }: { onSaved: () => void }) {
+  const [verifyToken, setVerifyToken] = useState('');
+  const [accessToken, setAccessToken] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/platforms/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform: 'whatsapp', client_id: verifyToken, client_secret: accessToken })
+      });
+      if (res.ok) {
+        toast.success(`WhatsApp Configuration saved!`);
+        onSaved();
+      } else {
+        toast.error('Failed to save WhatsApp config');
+      }
+    } catch (err) {
+      toast.error('Failed to save WhatsApp config');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSave} className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-green-800"><Settings size={16}/> WhatsApp Cloud API Settings</h4>
+      <div className="space-y-3">
+        <div>
+          <label className="block text-xs font-medium text-green-900 mb-1">Verify Token (For Webhook)</label>
+          <input 
+            type="text" 
+            required 
+            value={verifyToken}
+            onChange={e => setVerifyToken(e.target.value)}
+            className="w-full text-sm border-green-300 rounded-md focus:ring-green-500 focus:border-green-500" 
+            placeholder="Custom token to verify your webhook"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-green-900 mb-1">Permanent Access Token</label>
+          <input 
+            type="password" 
+            required 
+            value={accessToken}
+            onChange={e => setAccessToken(e.target.value)}
+            className="w-full text-sm border-green-300 rounded-md focus:ring-green-500 focus:border-green-500" 
+            placeholder="EA..."
+          />
+        </div>
+        <p className="text-xs text-green-700">These credentials allow Jarvis to interact with you via WhatsApp.</p>
+        <button type="submit" disabled={loading} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50">
+          {loading ? 'Saving...' : 'Save WhatsApp Config'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function PlatformSettings() {
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
   const [configuredPlatforms, setConfiguredPlatforms] = useState<string[]>([]);
@@ -268,6 +330,11 @@ export default function PlatformSettings() {
                  setExpandedConfig(null);
                  fetchStatus();
                }} />
+             ) : id === 'whatsapp' ? (
+               <WhatsAppConfigForm onSaved={() => {
+                 setExpandedConfig(null);
+                 fetchStatus();
+               }} />
              ) : (
                <ConfigForm platform={id} onSaved={() => {
                  setExpandedConfig(null);
@@ -292,6 +359,7 @@ export default function PlatformSettings() {
         {renderPlatformRow('instagram', 'Instagram', 'Business or Creator account required.', <Instagram size={24} />, 'bg-pink-100', 'text-pink-600')}
         {renderPlatformRow('pinterest', 'Pinterest', 'Publish pins directly to your boards.', 'P', 'bg-red-100', 'text-red-600')}
         {renderPlatformRow('youtube', 'YouTube', 'Publish images to the Community tab.', <Youtube size={24} />, 'bg-red-100', 'text-red-600')}
+        {renderPlatformRow('whatsapp', 'WhatsApp (Jarvis)', 'Connect WhatsApp API to interact with Jarvis via chat.', <MessageCircle size={24} />, 'bg-green-100', 'text-green-600')}
         {renderPlatformRow('amazon', 'Amazon Automation Engine', 'Configure Top 1% BSR daily fetcher.', <Bot size={24} />, 'bg-amber-100', 'text-amber-600')}
         {renderPlatformRow('gemini', 'Google AI Studio', 'Bring your own key for the AI agents.', <Sparkles size={24} />, 'bg-purple-100', 'text-purple-600')}
       </div>

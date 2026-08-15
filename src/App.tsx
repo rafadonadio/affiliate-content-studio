@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard';
 import PlatformSettings from './components/PlatformSettings';
 import CalendarView from './components/CalendarView';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+import { AssistantConsole } from './components/AssistantConsole';
 import { Calendar as CalendarIcon, BarChart3 } from 'lucide-react';
 
 export default function App() {
@@ -78,6 +79,7 @@ export default function App() {
         {view === 'analytics' && <AnalyticsDashboard />}
         {view === 'settings' && <PlatformSettings />}
       </main>
+      <AssistantConsole />
     </div>
   );
 }

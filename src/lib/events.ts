@@ -4,3 +4,10 @@ import { EventEmitter } from 'events';
 class AppEventEmitter extends EventEmitter {}
 
 export const appEvents = new AppEventEmitter();
+
+// Event Constants for Assistant
+export const ASSISTANT_EVENTS = {
+    ON_VOICE_COMMAND: 'ON_VOICE_COMMAND',
+    ASSISTANT_RESPONSE: 'ASSISTANT_RESPONSE',
+    EXECUTE_ACTION: 'EXECUTE_ACTION'
+};
