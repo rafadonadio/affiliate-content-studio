@@ -4,10 +4,12 @@
 CREATE TABLE IF NOT EXISTS users (
   id VARCHAR(255) PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255) DEFAULT '*OTP*',
   role VARCHAR(50) DEFAULT 'user',
   assistant_name VARCHAR(255) DEFAULT 'Assistant',
   assistant_avatar TEXT,
+  otp_code VARCHAR(10),
+  otp_expires_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

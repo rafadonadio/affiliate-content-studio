@@ -2,6 +2,7 @@ export const translations = {
   en: {
     landing: {
       signIn: "Sign In",
+      downloadApp: "Download App",
       poweredBy: "Powered by MAPER.TECH",
       title: "Automate Amazon Affiliates <br /> with a Robust Automation Infrastructure.",
       subtitle: "Generate viral content for Instagram, YouTube, and Pinterest. Grow your passive income and let our solid engine handle the posting. (TikTok integration coming soon).",
@@ -21,9 +22,10 @@ export const translations = {
       title: "SaaS Login",
       subtitle: "Sign in to verify your Pro License and unlock the Platform.",
       email: "Email Address",
-      password: "Password",
-      verifying: "Verifying License...",
-      signInBtn: "Sign In & Verify",
+      code: "Verification Code (Check your email)",
+      verifying: "Verifying...",
+      sendCodeBtn: "Send Code",
+      signInBtn: "Verify Code",
       secure: "Secure Cloud Licensing",
       backToHome: "← Back to Home"
     },
@@ -72,6 +74,7 @@ export const translations = {
   es: {
     landing: {
       signIn: "Iniciar Sesión",
+      downloadApp: "Descargar App",
       poweredBy: "Potenciado por MAPER.TECH",
       title: "Automatiza Afiliados de Amazon <br /> con una Robusta Infraestructura de Automatización.",
       subtitle: "Genera contenido viral para Instagram, YouTube y Pinterest. Aumenta tus ingresos pasivos y deja que nuestro sólido motor se encargue de publicar. (Integración con TikTok próximamente).",
@@ -91,9 +94,10 @@ export const translations = {
       title: "Acceso SaaS",
       subtitle: "Inicia sesión para verificar tu Licencia Pro y desbloquear la plataforma.",
       email: "Correo Electrónico",
-      password: "Contraseña",
-      verifying: "Verificando Licencia...",
-      signInBtn: "Iniciar Sesión y Verificar",
+      code: "Código de Verificación (Revisa tu email)",
+      verifying: "Verificando...",
+      sendCodeBtn: "Enviar Código",
+      signInBtn: "Verificar Código",
       secure: "Licencia Segura en la Nube",
       backToHome: "← Volver al Inicio"
     },

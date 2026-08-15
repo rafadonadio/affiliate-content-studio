@@ -15,7 +15,8 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
+  requestOtp: (email: string) => Promise<void>;
+  verifyOtp: (email: string, code: string) => Promise<void>;
   logout: () => void;
   updateAssistant: (name: string, avatar: string) => Promise<void>;
 }
@@ -35,24 +36,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, pass: string) => {
-    // REAL BACKEND AUTH
+  const requestOtp = async (email: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pass })
+        body: JSON.stringify({ email })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Invalid credentials');
+        throw new Error(errorData.error || 'Failed to request code');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyOtp = async (email: string, code: string) => {
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Invalid code');
       }
 
       const data = await response.json();
       
       setUser(data.user);
-      // Store token and user session
       localStorage.setItem('saas_token', data.token);
       localStorage.setItem('saas_session', JSON.stringify(data.user));
     } catch (error) {
@@ -91,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateAssistant }}>
+    <AuthContext.Provider value={{ user, loading, requestOtp, verifyOtp, logout, updateAssistant }}>
       {children}
     </AuthContext.Provider>
   );
