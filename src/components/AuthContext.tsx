@@ -8,6 +8,8 @@ export interface User {
   email: string;
   role: string;
   hasProLicense: boolean;
+  assistantName?: string;
+  assistantAvatar?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   logout: () => void;
+  updateAssistant: (name: string, avatar: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,8 +66,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('saas_token');
   };
 
+  const updateAssistant = async (name: string, avatar: string) => {
+    if (!user) return;
+    try {
+      const response = await fetch('/api/auth/assistant', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('saas_token')}`
+        },
+        body: JSON.stringify({ assistantName: name, assistantAvatar: avatar })
+      });
+
+      if (!response.ok) throw new Error('Failed to update assistant');
+
+      const data = await response.json();
+      const updatedUser = { ...user, assistantName: data.assistantName, assistantAvatar: data.assistantAvatar };
+      setUser(updatedUser);
+      localStorage.setItem('saas_session', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateAssistant }}>
       {children}
     </AuthContext.Provider>
   );

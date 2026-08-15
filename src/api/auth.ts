@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
     }
 
     const db = await getDb();
-    const user = await db.get<{id: string, email: string, password_hash: string, role: string}>('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await db.get<{id: string, email: string, password_hash: string, role: string, assistant_name: string, assistant_avatar: string}>('SELECT * FROM users WHERE email = ?', [email]);
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -61,8 +61,8 @@ router.post('/login', async (req, res) => {
     
     const hasProLicense = !!sub;
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user.id, email: user.email, role: user.role, hasProLicense } });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role, assistantName: user.assistant_name, assistantAvatar: user.assistant_avatar }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user.id, email: user.email, role: user.role, hasProLicense, assistantName: user.assistant_name, assistantAvatar: user.assistant_avatar } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
@@ -82,6 +82,32 @@ router.post('/promote', async (req, res) => {
     await db.run("UPDATE users SET role = 'admin' WHERE email = ?", [email]);
     res.json({ success: true, message: `${email} is now an admin` });
   } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Endpoint to update assistant settings
+router.patch('/assistant', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    
+    const { assistantName, assistantAvatar } = req.body;
+    const db = await getDb();
+    
+    await db.run(
+      "UPDATE users SET assistant_name = ?, assistant_avatar = ? WHERE id = ?",
+      [assistantName || 'Assistant', assistantAvatar || null, decoded.id]
+    );
+    
+    res.json({ success: true, assistantName: assistantName || 'Assistant', assistantAvatar: assistantAvatar || null });
+  } catch (error) {
+    console.error('Update assistant error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

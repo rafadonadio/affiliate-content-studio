@@ -229,7 +229,7 @@ function WhatsAppConfigForm({ onSaved }: { onSaved: () => void }) {
             placeholder="EA..."
           />
         </div>
-        <p className="text-xs text-green-700">These credentials allow Jarvis to interact with you via WhatsApp.</p>
+        <p className="text-xs text-green-700">These credentials allow the Assistant to interact with you via WhatsApp.</p>
         <button type="submit" disabled={loading} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50">
           {loading ? 'Saving...' : 'Save WhatsApp Config'}
         </button>
@@ -238,7 +238,64 @@ function WhatsAppConfigForm({ onSaved }: { onSaved: () => void }) {
   );
 }
 
+function AssistantSettingsForm() {
+  const { user, updateAssistant } = useAuth();
+  const [name, setName] = useState(user?.assistantName || 'Assistant');
+  const [avatar, setAvatar] = useState(user?.assistantAvatar || '🤖');
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await updateAssistant(name, avatar);
+      toast.success('Assistant personalized successfully!');
+    } catch (err) {
+      toast.error('Failed to update assistant');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white p-8 rounded-xl border border-neutral-200 shadow-sm max-w-2xl mx-auto mb-8">
+      <h2 className="text-2xl font-bold mb-2">Personalize Your Assistant</h2>
+      <p className="text-neutral-500 mb-6">Customize the name and avatar of your virtual assistant.</p>
+      
+      <form onSubmit={handleSave} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Assistant Name</label>
+          <input 
+            type="text" 
+            required 
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="w-full text-sm border-neutral-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" 
+            placeholder="e.g. Assistant, Max, Emma"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Assistant Avatar (Emoji)</label>
+          <input 
+            type="text" 
+            maxLength={2}
+            required 
+            value={avatar}
+            onChange={e => setAvatar(e.target.value)}
+            className="w-full text-sm border-neutral-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" 
+            placeholder="🤖"
+          />
+        </div>
+        <button type="submit" disabled={loading} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50">
+          {loading ? 'Saving...' : 'Save Personalization'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function PlatformSettings() {
+  const { user } = useAuth();
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
   const [configuredPlatforms, setConfiguredPlatforms] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -351,6 +408,7 @@ export default function PlatformSettings() {
   return (
     <>
       <BillingSettings />
+      <AssistantSettingsForm />
       <div className="bg-white p-8 rounded-xl border border-neutral-200 shadow-sm max-w-2xl mx-auto">
         <h2 className="text-2xl font-bold mb-2">Platform Connections</h2>
 
@@ -363,7 +421,7 @@ export default function PlatformSettings() {
         {renderPlatformRow('instagram', 'Instagram', 'Business or Creator account required.', <Instagram size={24} />, 'bg-pink-100', 'text-pink-600')}
         {renderPlatformRow('pinterest', 'Pinterest', 'Publish pins directly to your boards.', 'P', 'bg-red-100', 'text-red-600')}
         {renderPlatformRow('youtube', 'YouTube', 'Publish images to the Community tab.', <Youtube size={24} />, 'bg-red-100', 'text-red-600')}
-        {renderPlatformRow('whatsapp', 'WhatsApp (Jarvis)', 'Connect WhatsApp API to interact with Jarvis via chat.', <MessageCircle size={24} />, 'bg-green-100', 'text-green-600')}
+        {renderPlatformRow('whatsapp', 'WhatsApp (Assistant)', `Connect WhatsApp API to interact with ${user?.assistantName || 'Assistant'} via chat.`, <MessageCircle size={24} />, 'bg-green-100', 'text-green-600')}
         {renderPlatformRow('amazon', 'Amazon Automation Engine', 'Configure Top 1% BSR daily fetcher.', <Bot size={24} />, 'bg-amber-100', 'text-amber-600')}
         {renderPlatformRow('gemini', 'Google AI Studio', 'Bring your own key for the AI agents.', <Sparkles size={24} />, 'bg-purple-100', 'text-purple-600')}
       </div>

@@ -84,7 +84,7 @@ export function BillingSettings() {
           <p className="text-sm text-neutral-500 max-w-sm">
             {isActive 
               ? `Your subscription is active until ${new Date(subscription.current_period_end).toLocaleDateString()}.`
-              : 'Upgrade to the Pro Plan to unlock Jarvis Voice Assistant and unlimited AI generations.'}
+              : 'Upgrade to the Pro Plan to unlock the Assistant and unlimited automated generations.'}
           </p>
         </div>
 

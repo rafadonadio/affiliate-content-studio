@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Mic, MicOff, Send, Bot, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
+import { useAuth } from './AuthContext';
 
 export function AssistantConsole() {
+  const { user } = useAuth();
+  const assistantName = user?.assistantName || 'Assistant';
+  const assistantAvatar = user?.assistantAvatar || '🤖';
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isContinuousMode, setIsContinuousMode] = useState(false);
   const [inputText, setInputText] = useState('');
@@ -61,8 +66,9 @@ export function AssistantConsole() {
       // Wake word logic for continuous mode
       if (isContinuousMode) {
         const lowerText = text.toLowerCase();
-        if (lowerText.startsWith('jarvis')) {
-          const command = lowerText.replace('jarvis', '').trim();
+        const triggerWord = assistantName.toLowerCase();
+        if (lowerText.startsWith(triggerWord)) {
+          const command = lowerText.replace(triggerWord, '').trim();
           if (command) {
             handleSendCommand(command);
           }
@@ -102,8 +108,8 @@ export function AssistantConsole() {
     <div className="fixed bottom-6 right-6 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-50 border border-gray-200 dark:border-gray-700 transition-all duration-300">
       <div className="bg-indigo-600 p-4 text-white flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Bot size={24} />
-          <h3 className="font-semibold text-lg">Jarvis</h3>
+          <span className="text-xl">{assistantAvatar}</span>
+          <h3 className="font-semibold text-lg">{assistantName}</h3>
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -123,7 +129,7 @@ export function AssistantConsole() {
       <div className="flex-1 p-4 h-80 overflow-y-auto flex flex-col gap-3 bg-gray-50 dark:bg-gray-900/50">
         <div className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200 p-3 rounded-lg rounded-tl-none self-start max-w-[85%] text-sm">
           {isContinuousMode 
-            ? 'Modo Continuo activo. Di "Jarvis" seguido de tu comando.' 
+            ? `Modo Continuo activo. Di "${assistantName}" seguido de tu comando.` 
             : 'Hola, ¿en qué te puedo ayudar hoy? Haz clic en el micrófono para hablar.'}
         </div>
         

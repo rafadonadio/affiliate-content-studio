@@ -38,7 +38,7 @@ export default function Paywall() {
     <div className="min-h-screen bg-black text-white flex flex-col selection:bg-indigo-500/30">
       <nav className="p-6 flex justify-between items-center max-w-7xl mx-auto w-full border-b border-white/10">
         <div className="flex items-center gap-2 text-xl font-bold">
-          <span className="text-indigo-500">Jarvis</span> Pro
+          <span className="text-indigo-500">Studio</span> Pro
         </div>
         <div className="flex items-center gap-4">
           <LanguageSwitcher />

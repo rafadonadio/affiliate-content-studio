@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   role VARCHAR(50) DEFAULT 'user',
+  assistant_name VARCHAR(255) DEFAULT 'Assistant',
+  assistant_avatar TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
