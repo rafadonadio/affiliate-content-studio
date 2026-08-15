@@ -22,10 +22,11 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
             <a 
-              href="#"
+              href="https://github.com/rafadonadio/affiliate-content-studio/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-6 py-2.5 rounded-full border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors"
-              title="Coming Soon: Executable download"
-              onClick={(e) => { e.preventDefault(); alert('Próximamente / Coming Soon: El archivo ejecutable se descargará desde aquí.'); }}
+              title="Download latest version"
             >
               {t.landing.downloadApp}
             </a>

@@ -28,8 +28,9 @@
       "target": "nsis"
     },
     "publish": {
-      "provider": "generic",
-      "url": "https://afs.maper.tech/updates"
+      "provider": "github",
+      "owner": "rafadonadio",
+      "repo": "affiliate-content-studio"
     }
   },
   "dependencies": {
