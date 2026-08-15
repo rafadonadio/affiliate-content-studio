@@ -16,6 +16,7 @@ import { Calendar as CalendarIcon, BarChart3, ShieldCheck, LogOut } from 'lucide
 
 import { useAuth } from './components/AuthContext';
 import { Login } from './components/Login';
+import Paywall from './components/Paywall';
 
 export default function App() {
   const { user, loading, logout } = useAuth();
@@ -48,6 +49,16 @@ export default function App() {
 
   if (!user) {
     return <Login />;
+  }
+
+  // Intercept unpaid users (Admins bypass the paywall to configure settings)
+  if (!user.hasProLicense && user.role !== 'admin') {
+    return (
+      <>
+        <Toaster position="top-right" richColors />
+        <Paywall />
+      </>
+    );
   }
 
   return (

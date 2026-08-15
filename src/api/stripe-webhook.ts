@@ -36,15 +36,21 @@ router.post('/', express.raw({type: 'application/json'}), async (request, respon
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
+      const userId = session.client_reference_id;
       
-      // Update DB
-      await db.run(
-        `UPDATE subscriptions SET 
-         stripe_subscription_id = ?, 
-         status = 'active'
-         WHERE stripe_customer_id = ?`,
-        [session.subscription, session.customer]
-      );
+      if (userId) {
+        // Update DB
+        await db.run(
+          `INSERT INTO subscriptions (user_id, stripe_customer_id, stripe_subscription_id, status) 
+           VALUES (?, ?, ?, 'active') 
+           ON DUPLICATE KEY UPDATE 
+           stripe_subscription_id = VALUES(stripe_subscription_id), 
+           status = 'active'`,
+          [userId, session.customer, session.subscription]
+        );
+      } else {
+        console.warn('Checkout completed but no client_reference_id found. Cannot link to user.');
+      }
       break;
     }
     case 'customer.subscription.updated':

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Stripe from 'stripe';
-import { getDb } from '../lib/db';
+import { getDb } from '../lib/db.js';
+import { authenticateToken, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -12,13 +13,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_key_for
 const PRICE_ID_PRO = process.env.STRIPE_PRICE_ID_PRO || 'price_mock_pro';
 
 // 1. Create Checkout Session
-router.post('/create-checkout-session', async (req, res) => {
+router.post('/create-checkout-session', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
     const db = await getDb();
-    
-    // In a real multi-tenant app, we'd get the user ID from the auth token.
-    // For this local app, we assume a single local user.
-    let subscription = await db.get("SELECT * FROM subscriptions LIMIT 1");
+    let subscription = await db.get("SELECT * FROM subscriptions WHERE user_id = ?", [userId]);
     
     let customerId = subscription?.stripe_customer_id;
     
@@ -30,14 +31,17 @@ router.post('/create-checkout-session', async (req, res) => {
       customerId = customer.id;
       
       if (!subscription) {
-        await db.run("INSERT INTO subscriptions (stripe_customer_id) VALUES (?)", [customerId]);
+        await db.run("INSERT INTO subscriptions (user_id, stripe_customer_id) VALUES (?, ?)", [userId, customerId]);
       } else {
-        await db.run("UPDATE subscriptions SET stripe_customer_id = ? WHERE id = ?", [customerId, subscription.id]);
+        await db.run("UPDATE subscriptions SET stripe_customer_id = ? WHERE user_id = ?", [customerId, userId]);
       }
     }
 
+    const FRONTEND_URL = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || 'http://localhost:5199';
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
+      client_reference_id: userId,
       payment_method_types: ['card'],
       line_items: [
         {
@@ -46,8 +50,8 @@ router.post('/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'subscription',
-      success_url: `http://localhost:3000/settings?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:3000/settings`,
+      success_url: `${FRONTEND_URL}/settings?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/settings`,
     });
 
     res.json({ url: session.url });
@@ -58,18 +62,21 @@ router.post('/create-checkout-session', async (req, res) => {
 });
 
 // 2. Create Customer Portal Session
-router.post('/create-portal-session', async (req, res) => {
+router.post('/create-portal-session', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const userId = req.user?.id;
     const db = await getDb();
-    const subscription = await db.get("SELECT * FROM subscriptions LIMIT 1");
+    const subscription = await db.get("SELECT * FROM subscriptions WHERE user_id = ?", [userId]);
     
     if (!subscription || !subscription.stripe_customer_id) {
       return res.status(400).json({ error: 'No customer found. Please subscribe first.' });
     }
 
+    const FRONTEND_URL = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || 'http://localhost:5199';
+
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
-      return_url: `http://localhost:3000/settings`,
+      return_url: `${FRONTEND_URL}/settings`,
     });
 
     res.json({ url: portalSession.url });
@@ -80,10 +87,11 @@ router.post('/create-portal-session', async (req, res) => {
 });
 
 // 3. Get Subscription Status
-router.get('/status', async (req, res) => {
+router.get('/status', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const userId = req.user?.id;
     const db = await getDb();
-    const subscription = await db.get("SELECT * FROM subscriptions LIMIT 1");
+    const subscription = await db.get("SELECT * FROM subscriptions WHERE user_id = ?", [userId]);
     
     if (!subscription) {
       return res.json({ status: 'inactive' });

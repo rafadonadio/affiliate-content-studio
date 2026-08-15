@@ -139,12 +139,14 @@ export async function getDb() {
     await dbWrapper.run(`
       CREATE TABLE IF NOT EXISTS subscriptions (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(255) UNIQUE,
         stripe_customer_id VARCHAR(255) UNIQUE,
         stripe_subscription_id VARCHAR(255) UNIQUE,
         plan_id VARCHAR(255),
         status VARCHAR(50) DEFAULT 'inactive',
         current_period_end DATETIME,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
 

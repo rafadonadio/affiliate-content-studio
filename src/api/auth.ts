@@ -56,11 +56,10 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Check subscription status
-    const sub = await db.get<{status: string}>('SELECT status FROM subscriptions WHERE stripe_customer_id = (SELECT stripe_customer_id FROM users WHERE id = ?) OR id > 0', [user.id]);
+    // Check active subscription
+    const sub = await db.get('SELECT status FROM subscriptions WHERE user_id = ? AND status = "active"', [user.id]);
     
-    // For demo purposes, if they logged in, we say they have PRO if there's any active sub or we just default to true for testing if none found.
-    const hasProLicense = sub?.status === 'active' || true; 
+    const hasProLicense = !!sub;
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user.id, email: user.email, role: user.role, hasProLicense } });
