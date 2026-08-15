@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
     }
 
     const db = await getDb();
-    const user = await db.get<{id: string, email: string, password_hash: string}>('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await db.get<{id: string, email: string, password_hash: string, role: string}>('SELECT * FROM users WHERE email = ?', [email]);
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -62,11 +62,28 @@ router.post('/login', async (req, res) => {
     // For demo purposes, if they logged in, we say they have PRO if there's any active sub or we just default to true for testing if none found.
     const hasProLicense = sub?.status === 'active' || true; 
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user.id, email: user.email, hasProLicense } });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user.id, email: user.email, role: user.role, hasProLicense } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
+  }
+});
+
+// Helper endpoint to promote a user to admin (in a real app, this should be protected by a master key or done manually in DB)
+router.post('/promote', async (req, res) => {
+  try {
+    const { email, masterKey } = req.body;
+    // VERY BASIC protection
+    if (masterKey !== process.env.JWT_SECRET) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    
+    const db = await getDb();
+    await db.run("UPDATE users SET role = 'admin' WHERE email = ?", [email]);
+    res.json({ success: true, message: `${email} is now an admin` });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

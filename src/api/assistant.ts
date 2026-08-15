@@ -13,8 +13,17 @@ assistantRouter.post("/", async (req, res) => {
 
     const action = await processAssistantCommand(command, context);
     
+    // Only log to database if it's a real operational action, not just a conversational failure
+    if (action.action !== "UNKNOWN") {
+      const { getDb } = await import("../lib/db.js");
+      const db = await getDb();
+      await db.run(
+        "INSERT INTO execution_logs (action, details, status) VALUES (?, ?, ?)",
+        [action.action, JSON.stringify(action.payload || {}), "Success"]
+      );
+    }
+
     // Broadcast the action to the frontend via SSE if needed
-    // or frontend can just handle the response directly.
     appEvents.emit('notification', {
       type: ASSISTANT_EVENTS.ASSISTANT_RESPONSE,
       payload: action

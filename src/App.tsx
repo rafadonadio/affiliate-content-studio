@@ -10,14 +10,17 @@ import Dashboard from './components/Dashboard';
 import PlatformSettings from './components/PlatformSettings';
 import CalendarView from './components/CalendarView';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import { AssistantConsole } from './components/AssistantConsole';
-import { Calendar as CalendarIcon, BarChart3, LogOut } from 'lucide-react';
+import { Calendar as CalendarIcon, BarChart3, ShieldCheck, LogOut } from 'lucide-react';
+
 import { useAuth } from './components/AuthContext';
 import { Login } from './components/Login';
 
 export default function App() {
   const { user, loading, logout } = useAuth();
-  const [view, setView] = useState<'dashboard' | 'calendar' | 'analytics' | 'settings'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'calendar' | 'analytics' | 'settings' | 'admin'>('dashboard');
+
 
   useEffect(() => {
     const eventSource = new EventSource('/api/notifications');
@@ -79,7 +82,19 @@ export default function App() {
               >
                 <Settings size={20}/>
               </button>
+              
+              {user?.role === 'admin' && (
+                <button 
+                  onClick={() => setView('admin')}
+                  className={`p-2 rounded-full ${view === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-neutral-100 text-neutral-500'}`}
+                  title="Súper Administrador"
+                >
+                  <ShieldCheck size={20}/>
+                </button>
+              )}
+
               <div className="w-px h-6 bg-neutral-200 self-center mx-2"></div>
+
               <button 
                 onClick={logout}
                 className="p-2 rounded-full hover:bg-red-50 text-neutral-400 hover:text-red-500 transition-colors"
@@ -97,7 +112,9 @@ export default function App() {
         {view === 'calendar' && <CalendarView />}
         {view === 'analytics' && <AnalyticsDashboard />}
         {view === 'settings' && <PlatformSettings />}
+        {view === 'admin' && <AdminDashboard />}
       </main>
+
       <AssistantConsole />
     </div>
   );

@@ -6,6 +6,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 export interface User {
   id: string;
   email: string;
+  role: string;
   hasProLicense: boolean;
 }
 

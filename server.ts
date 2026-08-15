@@ -10,6 +10,7 @@ import { whatsappRouter } from "./src/api/whatsapp-webhook.js";
 import { stripeRouter } from "./src/api/stripe.js";
 import { stripeWebhookRouter } from "./src/api/stripe-webhook.js";
 import { authRouter } from "./src/api/auth.js";
+import { adminRouter } from "./src/api/admin.js";
 
 async function startServer() {
   const app = express();
@@ -30,6 +31,7 @@ async function startServer() {
   app.use("/api/stripe", stripeRouter);
   app.use("/api/stripe/webhook", stripeWebhookRouter);
   app.use("/api/auth", authRouter);
+  app.use("/api/admin", adminRouter);
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });

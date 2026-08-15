@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Send, Bot, X } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Mic, MicOff, Send, Bot, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 
 export function AssistantConsole() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isContinuousMode, setIsContinuousMode] = useState(false);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<{role: 'user' | 'assistant', text: string}[]>([]);
-  const { isListening, transcript, startListening, stopListening, isSupported } = useVoiceRecognition();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -22,7 +22,7 @@ export function AssistantConsole() {
   }, [transcript, isListening]);
 
   // Send command to backend
-  const handleSendCommand = async (command: string) => {
+  const handleSendCommand = useCallback(async (command: string) => {
     if (!command.trim()) return;
 
     setMessages(prev => [...prev, { role: 'user', text: command }]);
@@ -53,17 +53,38 @@ export function AssistantConsole() {
       console.error("Assistant error", error);
       setMessages(prev => [...prev, { role: 'assistant', text: 'Hubo un error de conexión.' }]);
     }
-  };
+  }, []);
+
+  const { isListening, transcript, startListening, stopListening, isSupported } = useVoiceRecognition({
+    continuousMode: isContinuousMode,
+    onFinalTranscript: (text) => {
+      // Wake word logic for continuous mode
+      if (isContinuousMode) {
+        const lowerText = text.toLowerCase();
+        if (lowerText.startsWith('jarvis')) {
+          const command = lowerText.replace('jarvis', '').trim();
+          if (command) {
+            handleSendCommand(command);
+          }
+        }
+      }
+    }
+  });
 
   const handleToggleVoice = () => {
     if (isListening) {
       stopListening();
-      if (inputText) {
+      if (!isContinuousMode && inputText) {
         handleSendCommand(inputText);
       }
     } else {
       startListening();
     }
+  };
+
+  const handleToggleContinuous = () => {
+    if (isListening) stopListening();
+    setIsContinuousMode(!isContinuousMode);
   };
 
   if (!isOpen) {
@@ -84,14 +105,26 @@ export function AssistantConsole() {
           <Bot size={24} />
           <h3 className="font-semibold text-lg">Jarvis</h3>
         </div>
-        <button onClick={() => setIsOpen(false)} className="hover:text-indigo-200">
-          <X size={20} />
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={handleToggleContinuous} 
+            className="flex items-center gap-1 text-xs bg-indigo-500/50 hover:bg-indigo-500 px-2 py-1 rounded transition-colors"
+            title="Alternar Modo Continuo"
+          >
+            {isContinuousMode ? <ToggleRight size={16} className="text-green-300" /> : <ToggleLeft size={16} />}
+            {isContinuousMode ? 'Continuo' : 'Asistido'}
+          </button>
+          <button onClick={() => setIsOpen(false)} className="hover:text-indigo-200">
+            <X size={20} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 p-4 h-80 overflow-y-auto flex flex-col gap-3 bg-gray-50 dark:bg-gray-900/50">
         <div className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200 p-3 rounded-lg rounded-tl-none self-start max-w-[85%] text-sm">
-          Hola, ¿en qué te puedo ayudar hoy?
+          {isContinuousMode 
+            ? 'Modo Continuo activo. Di "Jarvis" seguido de tu comando.' 
+            : 'Hola, ¿en qué te puedo ayudar hoy? Haz clic en el micrófono para hablar.'}
         </div>
         
         {messages.map((msg, i) => (
