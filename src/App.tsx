@@ -3,16 +3,41 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Toaster, toast } from 'sonner';
 import { LayoutDashboard, Settings } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import PlatformSettings from './components/PlatformSettings';
+import CalendarView from './components/CalendarView';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import { Calendar as CalendarIcon, BarChart3 } from 'lucide-react';
 
 export default function App() {
-  const [view, setView] = useState<'dashboard' | 'settings'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'calendar' | 'analytics' | 'settings'>('dashboard');
+
+  useEffect(() => {
+    const eventSource = new EventSource('/api/notifications');
+    eventSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'success') {
+          toast.success(data.message);
+        } else if (data.type === 'error') {
+          toast.error(data.message);
+        }
+      } catch (err) {
+        console.error('Failed to parse SSE message', err);
+      }
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
+      <Toaster position="top-right" richColors />
       <nav className="border-b border-neutral-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
@@ -23,6 +48,18 @@ export default function App() {
                 className={`p-2 rounded-full ${view === 'dashboard' ? 'bg-neutral-100' : 'hover:bg-neutral-100'}`}
               >
                 <LayoutDashboard size={20}/>
+              </button>
+              <button 
+                onClick={() => setView('calendar')}
+                className={`p-2 rounded-full ${view === 'calendar' ? 'bg-neutral-100' : 'hover:bg-neutral-100'}`}
+              >
+                <CalendarIcon size={20}/>
+              </button>
+              <button 
+                onClick={() => setView('analytics')}
+                className={`p-2 rounded-full ${view === 'analytics' ? 'bg-neutral-100 text-indigo-600' : 'hover:bg-neutral-100'}`}
+              >
+                <BarChart3 size={20}/>
               </button>
               <button 
                 onClick={() => setView('settings')}
@@ -36,7 +73,10 @@ export default function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {view === 'dashboard' ? <Dashboard /> : <PlatformSettings />}
+        {view === 'dashboard' && <Dashboard />}
+        {view === 'calendar' && <CalendarView />}
+        {view === 'analytics' && <AnalyticsDashboard />}
+        {view === 'settings' && <PlatformSettings />}
       </main>
     </div>
   );
