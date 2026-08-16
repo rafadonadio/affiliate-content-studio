@@ -17,11 +17,22 @@ export default function ExecutionLogs() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch(API_URL + '/api/logs');
+        const token = localStorage.getItem('saas_token');
+        const res = await fetch(API_URL + '/api/logs', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const data = await res.json();
-        setLogs(data);
+        if (Array.isArray(data)) {
+          setLogs(data);
+        } else {
+          console.error("Expected array of logs, got:", data);
+          setLogs([]);
+        }
       } catch (err) {
         console.error("Failed to fetch logs", err);
+        setLogs([]);
       } finally {
         setLoading(false);
       }

@@ -16,17 +16,34 @@ export default function Dashboard() {
 
   const fetchDrafts = async () => {
     try {
-      const res = await fetch(API_URL + '/api/drafts');
+      const token = localStorage.getItem('saas_token');
+      const res = await fetch(API_URL + '/api/drafts', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
-      setDrafts(data);
+      if (Array.isArray(data)) {
+        setDrafts(data);
+      } else {
+        console.error("Expected array of drafts, got:", data);
+        setDrafts([]);
+      }
     } catch (e) {
       console.error(e);
+      setDrafts([]);
     }
   };
 
   const handleApproveDraft = async (id: number) => {
     try {
-      const res = await fetch(API_URL + `/api/drafts/${id}/approve`, { method: 'POST' });
+      const token = localStorage.getItem('saas_token');
+      const res = await fetch(API_URL + `/api/drafts/${id}/approve`, { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (res.ok) {
         toast.success("Draft approved and scheduled!");
         fetchDrafts();
@@ -38,7 +55,13 @@ export default function Dashboard() {
 
   const handleDeleteDraft = async (id: number) => {
     try {
-      const res = await fetch(API_URL + `/api/scheduled/${id}`, { method: 'DELETE' });
+      const token = localStorage.getItem('saas_token');
+      const res = await fetch(API_URL + `/api/scheduled/${id}`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (res.ok) {
         toast.success("Draft discarded.");
         fetchDrafts();
@@ -65,9 +88,13 @@ export default function Dashboard() {
     setCaptions([]);
     setSelectedCaption('');
     try {
+      const token = localStorage.getItem('saas_token');
       const response = await fetch(API_URL + '/api/generate-caption', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ productLink: link }),
       });
       const data = await response.json();
@@ -86,9 +113,13 @@ export default function Dashboard() {
     setLoadingImage(true);
     setImage('');
     try {
+      const token = localStorage.getItem('saas_token');
       const response = await fetch(API_URL + '/api/generate-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ prompt: imagePrompt }),
       });
       const data = await response.json();
@@ -108,9 +139,13 @@ export default function Dashboard() {
     
     setIsScheduling(true);
     try {
+      const token = localStorage.getItem('saas_token');
       const res = await fetch(API_URL + '/api/scheduled', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           productLink: link,
           caption: selectedCaption,
