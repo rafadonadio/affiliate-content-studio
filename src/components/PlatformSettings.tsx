@@ -176,65 +176,122 @@ function GeminiConfigForm({ onSaved }: { onSaved: () => void }) {
   );
 }
 
-function WhatsAppConfigForm({ onSaved }: { onSaved: () => void }) {
-  const [verifyToken, setVerifyToken] = useState('');
-  const [accessToken, setAccessToken] = useState('');
+function WhatsAppQRConnect({ onSaved }: { onSaved: () => void }) {
+  const [status, setStatus] = useState<'DISCONNECTED' | 'INITIALIZING' | 'QR_READY' | 'AUTHENTICATED' | 'READY'>('DISCONNECTED');
+  const [qrCode, setQrCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/platforms/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform: 'whatsapp', client_id: verifyToken, client_secret: accessToken })
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/whatsapp/status', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        toast.success(`WhatsApp Configuration saved!`);
-        onSaved();
-      } else {
-        toast.error('Failed to save WhatsApp config');
+        const data = await res.json();
+        setStatus(data.status);
+        setQrCode(data.qr);
+        if (data.status === 'READY') {
+          onSaved(); // Triggers the parent to refresh the main status
+        }
       }
     } catch (err) {
-      toast.error('Failed to save WhatsApp config');
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleConnect = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/whatsapp/connect', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStatus(data.status);
+        setQrCode(data.qr);
+      } else {
+        toast.error('Failed to initialize WhatsApp connection');
+      }
+    } catch (err) {
+      toast.error('Failed to initialize WhatsApp connection');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/whatsapp/logout', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setStatus('DISCONNECTED');
+        setQrCode(null);
+        toast.success('WhatsApp disconnected');
+        onSaved();
+      }
+    } catch (err) {
+      toast.error('Failed to disconnect WhatsApp');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSave} className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-green-800"><Settings size={16}/> WhatsApp Cloud API Settings</h4>
-      <div className="space-y-3">
-        <div>
-          <label className="block text-xs font-medium text-green-900 mb-1">Verify Token (For Webhook)</label>
-          <input 
-            type="text" 
-            required 
-            value={verifyToken}
-            onChange={e => setVerifyToken(e.target.value)}
-            className="w-full text-sm border-green-300 rounded-md focus:ring-green-500 focus:border-green-500" 
-            placeholder="Custom token to verify your webhook"
-          />
+    <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200 text-center">
+      <h4 className="text-sm font-semibold mb-3 flex items-center justify-center gap-2 text-green-800"><Settings size={16}/> WhatsApp Connection</h4>
+      
+      {status === 'DISCONNECTED' && (
+        <div className="space-y-3">
+          <p className="text-xs text-green-700">Scan a QR code to link your own WhatsApp account. The assistant will use it to interact with you.</p>
+          <button onClick={handleConnect} disabled={loading} className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50">
+            {loading ? 'Initializing...' : 'Generate QR Code'}
+          </button>
         </div>
-        <div>
-          <label className="block text-xs font-medium text-green-900 mb-1">Permanent Access Token</label>
-          <input 
-            type="password" 
-            required 
-            value={accessToken}
-            onChange={e => setAccessToken(e.target.value)}
-            className="w-full text-sm border-green-300 rounded-md focus:ring-green-500 focus:border-green-500" 
-            placeholder="EA..."
-          />
+      )}
+
+      {status === 'INITIALIZING' && (
+        <div className="py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-sm text-green-700">Starting WhatsApp Web Client...</p>
         </div>
-        <p className="text-xs text-green-700">These credentials allow the Assistant to interact with you via WhatsApp.</p>
-        <button type="submit" disabled={loading} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50">
-          {loading ? 'Saving...' : 'Save WhatsApp Config'}
-        </button>
-      </div>
-    </form>
+      )}
+
+      {status === 'QR_READY' && qrCode && (
+        <div className="space-y-4">
+          <p className="text-sm text-green-800 font-medium">Scan this QR Code with your WhatsApp app</p>
+          <div className="bg-white p-4 inline-block rounded-lg shadow-sm border border-green-100">
+            <img src={qrCode} alt="WhatsApp QR Code" className="w-48 h-48 mx-auto" />
+          </div>
+          <p className="text-xs text-green-600">Open WhatsApp &gt; Linked Devices &gt; Link a Device</p>
+        </div>
+      )}
+
+      {(status === 'AUTHENTICATED' || status === 'READY') && (
+        <div className="space-y-4 py-4">
+          <div className="flex items-center justify-center gap-2 text-green-700 font-semibold text-lg">
+            <CheckCircle size={24} /> 
+            WhatsApp Connected!
+          </div>
+          <p className="text-sm text-green-600">Your assistant is now managing your WhatsApp chats.</p>
+          <button onClick={handleDisconnect} disabled={loading} className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 mt-4">
+            {loading ? 'Disconnecting...' : 'Disconnect WhatsApp'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -389,7 +446,7 @@ export default function PlatformSettings() {
                  fetchStatus();
                }} />
              ) : id === 'whatsapp' ? (
-               <WhatsAppConfigForm onSaved={() => {
+               <WhatsAppQRConnect onSaved={() => {
                  setExpandedConfig(null);
                  fetchStatus();
                }} />

@@ -118,6 +118,16 @@ export async function getDb() {
     `);
 
     await dbWrapper.run(`
+      CREATE TABLE IF NOT EXISTS platform_credentials (
+        user_id VARCHAR(255),
+        platform VARCHAR(50),
+        is_connected BOOLEAN,
+        PRIMARY KEY (user_id, platform),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    await dbWrapper.run(`
       CREATE TABLE IF NOT EXISTS analytics (
         id INT AUTO_INCREMENT PRIMARY KEY,
         post_id INT,

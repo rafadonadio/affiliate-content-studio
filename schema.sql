@@ -40,6 +40,14 @@ CREATE TABLE IF NOT EXISTS oauth_credentials (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS platform_credentials (
+  user_id VARCHAR(255),
+  platform VARCHAR(50),
+  is_connected BOOLEAN,
+  PRIMARY KEY (user_id, platform),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS app_configs (
   platform VARCHAR(50) PRIMARY KEY,
   client_id VARCHAR(255) NOT NULL,

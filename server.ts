@@ -6,7 +6,7 @@ import { initQueue } from "./src/lib/queue.js";
 import { initAutomationEngine } from "./src/lib/automation.js";
 import { initEngagementBot } from "./src/lib/engagement.js";
 import { assistantRouter } from "./src/api/assistant.js";
-import { whatsappRouter } from "./src/api/whatsapp-webhook.js";
+import { whatsappRouter } from "./src/api/whatsapp.js";
 import { stripeRouter } from "./src/api/stripe.js";
 import { stripeWebhookRouter } from "./src/api/stripe-webhook.js";
 import { authRouter } from "./src/api/auth.js";
@@ -310,13 +310,27 @@ async function startServer() {
 
   app.get("/api/platforms/status", async (req, res) => {
     try {
+      // In a real app we'd use the user ID from auth middleware
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
       const rows = await db.all("SELECT platform FROM oauth_credentials");
-      const connected = rows.map(r => r.platform);
+      let connected = rows.map((r: any) => r.platform);
       
       const configRows = await db.all("SELECT platform FROM app_configs");
-      const configured = configRows.map(r => r.platform);
+      let configured = configRows.map((r: any) => r.platform);
+
+      // Check whatsapp manager in-memory directly for testing, or check DB
+      try {
+        const platRows = await db.all("SELECT platform FROM platform_credentials WHERE is_connected = 1");
+        connected = [...connected, ...platRows.map((r: any) => r.platform)];
+      } catch (e) {
+        // Table might not exist yet
+      }
+
+      // WhatsApp doesn't need app config anymore
+      if (!configured.includes('whatsapp')) {
+        configured.push('whatsapp');
+      }
       
       res.json({ connected, configured });
     } catch (error) {
