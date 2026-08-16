@@ -34,34 +34,36 @@ router.post('/request-otp', async (req, res) => {
 
     await db.run('UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE email = ?', [otpCode, formattedExpiresAt, email]);
 
-    // Send Email via Hostinger Relay (mailer.php)
+    // Send Email via Hostinger Relay (mailer.php) - Fire and Forget para que sea INSTANTÁNEO
     const relayUrl = 'https://afs.maper.tech/mailer.php';
     const relaySecret = 'AFS_Secret_Relay_2030';
 
-    try {
-      const response = await fetch(relayUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secret: relaySecret,
-          email: email,
-          otpCode: otpCode
-        })
-      });
-
+    // No usamos 'await' aquí. Dejamos que la petición viaje en segundo plano
+    fetch(relayUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: relaySecret,
+        email: email,
+        otpCode: otpCode
+      })
+    })
+    .then(response => {
       if (!response.ok) {
-        throw new Error(`Relay devolvió status: ${response.status}`);
+        console.error(`Relay devolvió status: ${response.status}`);
+      } else {
+        console.log(`✉️ Correo OTP enviado a ${email} vía Hostinger Relay`);
       }
-
-      console.log(`✉️ Correo OTP enviado a ${email} vía Hostinger Relay`);
-    } catch (mailError) {
+    })
+    .catch(mailError => {
       console.error('Error enviando correo por Relay:', mailError);
       // Fallback a consola en caso de error
       console.log(`\n\n========================================`);
       console.log(`🔐 OTP CODE FOR ${email}: ${otpCode}`);
       console.log(`========================================\n\n`);
-    }
+    });
 
+    // Respondemos inmediatamente al frontend sin esperar al correo
     res.json({ success: true, message: 'OTP sent' });
   } catch (error: any) {
     console.error('Request OTP error:', error);
