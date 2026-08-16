@@ -16,17 +16,6 @@ export function AssistantConsole() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isListening, transcript]);
-
-  // Handle voice transcript updates
-  useEffect(() => {
-    if (transcript && isListening) {
-      setInputText(transcript);
-    }
-  }, [transcript, isListening]);
-
   // Send command to backend
   const handleSendCommand = useCallback(async (command: string) => {
     if (!command.trim()) return;
@@ -77,6 +66,17 @@ export function AssistantConsole() {
       }
     }
   });
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isListening, transcript]);
+
+  // Handle voice transcript updates
+  useEffect(() => {
+    if (transcript && isListening) {
+      setInputText(transcript);
+    }
+  }, [transcript, isListening]);
 
   const handleToggleVoice = () => {
     if (isListening) {
