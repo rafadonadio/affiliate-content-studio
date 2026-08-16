@@ -50,6 +50,7 @@ router.post('/create-checkout-session', authenticateToken, async (req: AuthReque
         },
       ],
       mode: 'subscription',
+      allow_promotion_codes: true, // Habilita el campo de cupones en la pasarela de pago
       success_url: `${FRONTEND_URL}/settings?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${FRONTEND_URL}/settings`,
     });
