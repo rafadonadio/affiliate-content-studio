@@ -110,7 +110,7 @@ export function Login() {
                   value={code}
                   onChange={e => setCode(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-center tracking-[0.5em] font-mono text-lg"
-                  placeholder="123456"
+                  placeholder="------"
                   maxLength={6}
                 />
               </div>
