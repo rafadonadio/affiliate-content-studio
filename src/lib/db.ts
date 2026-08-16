@@ -55,7 +55,9 @@ export async function getDb() {
       database: process.env.DB_NAME || 'afs_db',
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000
     });
 
     const dbWrapper = new DBWrapper(pool);
