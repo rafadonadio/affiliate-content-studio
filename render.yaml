@@ -21,3 +21,5 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: BASE_URL
+        value: https://affiliate-content-studio.onrender.com

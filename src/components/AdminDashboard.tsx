@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import React, { useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { ShieldCheck, Users, CreditCard, Activity } from 'lucide-react';
@@ -16,8 +17,8 @@ export default function AdminDashboard() {
         const headers = { 'Authorization': `Bearer ${token}` };
 
         const [statsRes, usersRes] = await Promise.all([
-          fetch('/api/admin/stats', { headers }),
-          fetch('/api/admin/users', { headers })
+          fetch(API_URL + '/api/admin/stats', { headers }),
+          fetch(API_URL + '/api/admin/users', { headers })
         ]);
 
         if (statsRes.ok && usersRes.ok) {

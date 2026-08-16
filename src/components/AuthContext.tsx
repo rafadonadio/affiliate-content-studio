@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // For the architectural prototype, we simulate a Cloud Auth Provider (like Supabase/Firebase)
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const requestOtp = async (email: string) => {
     try {
-      const response = await fetch('/api/auth/request-otp', {
+      const response = await fetch(API_URL + '/api/auth/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const verifyOtp = async (email: string, code: string) => {
     try {
-      const response = await fetch('/api/auth/verify-otp', {
+      const response = await fetch(API_URL + '/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code })
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateAssistant = async (name: string, avatar: string) => {
     if (!user) return;
     try {
-      const response = await fetch('/api/auth/assistant', {
+      const response = await fetch(API_URL + '/api/auth/assistant', {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',

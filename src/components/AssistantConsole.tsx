@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Mic, MicOff, Send, Bot, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -34,7 +35,7 @@ export function AssistantConsole() {
     setInputText('');
 
     try {
-      const response = await fetch('/api/assistant', {
+      const response = await fetch(API_URL + '/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command, context: { currentPath: window.location.pathname } })

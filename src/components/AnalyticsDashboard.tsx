@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, MousePointerClick, Heart, MessageCircle, Sparkles } from 'lucide-react';
@@ -7,7 +8,7 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/analytics')
+    fetch(API_URL + '/api/analytics')
       .then(res => res.json())
       .then(d => {
         setData(d);

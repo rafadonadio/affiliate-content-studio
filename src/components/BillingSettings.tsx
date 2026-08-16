@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import React, { useState, useEffect } from 'react';
 import { CreditCard, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -12,7 +13,7 @@ export function BillingSettings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/stripe/status')
+    fetch(API_URL + '/api/stripe/status')
       .then(res => res.json())
       .then(data => {
         setSubscription(data);
@@ -26,7 +27,7 @@ export function BillingSettings() {
 
   const handleSubscribe = async () => {
     try {
-      const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST' });
+      const res = await fetch(API_URL + '/api/stripe/create-checkout-session', { method: 'POST' });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
@@ -38,7 +39,7 @@ export function BillingSettings() {
 
   const handleManageBilling = async () => {
     try {
-      const res = await fetch('/api/stripe/create-portal-session', { method: 'POST' });
+      const res = await fetch(API_URL + '/api/stripe/create-portal-session', { method: 'POST' });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;

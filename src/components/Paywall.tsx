@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { Lock, LogOut, Check, Zap, Star } from 'lucide-react';
@@ -14,7 +15,7 @@ export default function Paywall() {
     setLoading(true);
     try {
       const token = localStorage.getItem('saas_token');
-      const res = await fetch('/api/stripe/create-checkout-session', {
+      const res = await fetch(API_URL + '/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

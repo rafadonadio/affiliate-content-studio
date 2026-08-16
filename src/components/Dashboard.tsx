@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { FileText, RefreshCw, BarChart, Edit3, CalendarPlus, Check, X } from 'lucide-react';
@@ -15,7 +16,7 @@ export default function Dashboard() {
 
   const fetchDrafts = async () => {
     try {
-      const res = await fetch('/api/drafts');
+      const res = await fetch(API_URL + '/api/drafts');
       const data = await res.json();
       setDrafts(data);
     } catch (e) {
@@ -25,7 +26,7 @@ export default function Dashboard() {
 
   const handleApproveDraft = async (id: number) => {
     try {
-      const res = await fetch(`/api/drafts/${id}/approve`, { method: 'POST' });
+      const res = await fetch(API_URL + `/api/drafts/${id}/approve`, { method: 'POST' });
       if (res.ok) {
         toast.success("Draft approved and scheduled!");
         fetchDrafts();
@@ -37,7 +38,7 @@ export default function Dashboard() {
 
   const handleDeleteDraft = async (id: number) => {
     try {
-      const res = await fetch(`/api/scheduled/${id}`, { method: 'DELETE' });
+      const res = await fetch(API_URL + `/api/scheduled/${id}`, { method: 'DELETE' });
       if (res.ok) {
         toast.success("Draft discarded.");
         fetchDrafts();
@@ -64,7 +65,7 @@ export default function Dashboard() {
     setCaptions([]);
     setSelectedCaption('');
     try {
-      const response = await fetch('/api/generate-caption', {
+      const response = await fetch(API_URL + '/api/generate-caption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productLink: link }),
@@ -85,7 +86,7 @@ export default function Dashboard() {
     setLoadingImage(true);
     setImage('');
     try {
-      const response = await fetch('/api/generate-image', {
+      const response = await fetch(API_URL + '/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: imagePrompt }),
@@ -107,7 +108,7 @@ export default function Dashboard() {
     
     setIsScheduling(true);
     try {
-      const res = await fetch('/api/scheduled', {
+      const res = await fetch(API_URL + '/api/scheduled', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import { useState, useEffect } from 'react';
 import { Calendar, dateFnsLocalizer, Event } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
@@ -34,7 +35,7 @@ export default function CalendarView() {
 
   const fetchScheduled = async () => {
     try {
-      const res = await fetch('/api/scheduled');
+      const res = await fetch(API_URL + '/api/scheduled');
       const data: ScheduledPost[] = await res.json();
       const calendarEvents = data.map(post => ({
         id: post.id,
@@ -56,7 +57,7 @@ export default function CalendarView() {
   const onEventDrop = async (data: { event: Event, start: Date, end: Date }) => {
     const { event, start } = data;
     try {
-      const res = await fetch(`/api/scheduled/${event.id}`, {
+      const res = await fetch(API_URL + `/api/scheduled/${event.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduledFor: start.toISOString() })

@@ -273,8 +273,9 @@ async function startServer() {
       else if (platform === 'pinterest') scope = 'boards:read,pins:write';
       else if (platform === 'tiktok') scope = 'user.info.basic,video.publish,video.upload';
 
+      const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
       const authorizationUri = client.authorizeURL({
-        redirect_uri: `http://localhost:${PORT}/auth/${platform}/callback`,
+        redirect_uri: `${baseUrl}/auth/${platform}/callback`,
         scope,
         state: req.query.token as string, // Pass token through state to maintain session
         ...(platform === 'youtube' ? { access_type: 'offline', prompt: 'consent' } : {})
@@ -294,9 +295,10 @@ async function startServer() {
       const { getClient, saveCredentials } = await import("./src/lib/oauth.js");
       const client = await getClient(req.user.id, platform);
 
+      const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
       const tokenParams = {
         code: code as string,
-        redirect_uri: `http://localhost:${PORT}/auth/${platform}/callback`,
+        redirect_uri: `${baseUrl}/auth/${platform}/callback`,
       };
 
       const accessToken = await client.getToken(tokenParams);

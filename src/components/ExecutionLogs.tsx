@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import { useState, useEffect } from 'react';
 import { Database, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -16,7 +17,7 @@ export default function ExecutionLogs() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch('/api/logs');
+        const res = await fetch(API_URL + '/api/logs');
         const data = await res.json();
         setLogs(data);
       } catch (err) {

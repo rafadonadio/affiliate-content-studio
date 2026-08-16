@@ -1,3 +1,4 @@
+import { API_URL } from '../config.js';
 import { useEffect, useState } from 'react';
 import { Instagram, Youtube, CheckCircle, XCircle, Settings, ChevronDown, ChevronUp, Bot, Sparkles, MessageCircle, Video } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,7 +13,7 @@ function ConfigForm({ platform, onSaved }: { platform: string, onSaved: () => vo
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/platforms/config', {
+      const res = await fetch(API_URL + '/api/platforms/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform, client_id: clientId, client_secret: clientSecret })
@@ -73,7 +74,7 @@ function AmazonConfigForm({ onSaved }: { onSaved: () => void }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/platforms/config', {
+      const res = await fetch(API_URL + '/api/platforms/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: 'amazon', client_id: affiliateTag, client_secret: category })
@@ -134,7 +135,7 @@ function GeminiConfigForm({ onSaved }: { onSaved: () => void }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/platforms/config', {
+      const res = await fetch(API_URL + '/api/platforms/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: 'gemini', client_id: apiKey, client_secret: 'gemini-3.1-pro-low' })
@@ -184,7 +185,7 @@ function WhatsAppQRConnect({ onSaved }: { onSaved: () => void }) {
   const fetchStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/whatsapp/status', {
+      const res = await fetch(API_URL + '/api/whatsapp/status', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -210,7 +211,7 @@ function WhatsAppQRConnect({ onSaved }: { onSaved: () => void }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/whatsapp/connect', {
+      const res = await fetch(API_URL + '/api/whatsapp/connect', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -232,7 +233,7 @@ function WhatsAppQRConnect({ onSaved }: { onSaved: () => void }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/whatsapp/logout', {
+      const res = await fetch(API_URL + '/api/whatsapp/logout', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -360,7 +361,7 @@ export default function PlatformSettings() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/platforms/status');
+      const res = await fetch(API_URL + '/api/platforms/status');
       const data = await res.json();
       setConnectedPlatforms(data.connected.map((p: string) => p.toLowerCase()));
       setConfiguredPlatforms(data.configured.map((p: string) => p.toLowerCase()));

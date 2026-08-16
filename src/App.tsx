@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { API_URL } from './config.js';
+import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { LayoutDashboard, Settings } from 'lucide-react';
 import Dashboard from './components/Dashboard';
@@ -29,7 +30,7 @@ export default function App() {
 
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/notifications');
+    const eventSource = new EventSource(API_URL + '/api/notifications');
     eventSource.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
