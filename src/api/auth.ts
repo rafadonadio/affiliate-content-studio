@@ -39,6 +39,9 @@ router.post('/request-otp', async (req, res) => {
       host: process.env.SMTP_HOST || 'smtp.titan.email',
       port: 465,
       secure: true, // true for 465, false for other ports
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 5000, // 5 seconds
+      socketTimeout: 10000, // 10 seconds
       auth: {
         user: process.env.SMTP_USER || 'afs@maper.tech',
         pass: process.env.SMTP_PASS || 'Regent@LakeNona',

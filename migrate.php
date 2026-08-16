@@ -94,7 +94,26 @@ try {
         }
     }
 
-    // 6. Crear platform_credentials si no existe
+    // 6. Añadir nuevas columnas a la tabla users para el sistema OTP
+    echo "<br>🔄 Verificando columnas del sistema OTP en la tabla 'users'...\n<br>";
+    $userCols = [
+        'otp_code' => "VARCHAR(10)",
+        'otp_expires_at' => "DATETIME",
+        'assistant_name' => "VARCHAR(255) DEFAULT 'Assistant'",
+        'assistant_avatar' => "TEXT"
+    ];
+
+    foreach ($userCols as $colName => $colDef) {
+        $checkCol = $pdo->query("SHOW COLUMNS FROM `users` LIKE '$colName'")->fetch();
+        if (!$checkCol) {
+            $pdo->exec("ALTER TABLE `users` ADD COLUMN `$colName` $colDef");
+            echo "   ➕ Columna '$colName' añadida a users.\n<br>";
+        } else {
+            echo "   ℹ️ Columna '$colName' ya existía.\n<br>";
+        }
+    }
+
+    // 7. Crear platform_credentials si no existe
     $pdo->exec("CREATE TABLE IF NOT EXISTS platform_credentials (
         user_id VARCHAR(255),
         platform VARCHAR(50),
