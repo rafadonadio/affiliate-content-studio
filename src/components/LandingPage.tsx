@@ -32,9 +32,15 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             </a>
             <button 
               onClick={onLoginClick}
-              className="px-6 py-2.5 rounded-full bg-white text-black font-semibold hover:bg-neutral-200 transition-colors"
+              className="px-6 py-2.5 rounded-full border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors"
             >
               {t.landing.signIn}
+            </button>
+            <button 
+              onClick={onLoginClick}
+              className="px-6 py-2.5 rounded-full bg-white text-black font-semibold hover:bg-neutral-200 transition-colors"
+            >
+              {t.landing.signUp}
             </button>
           </div>
         </div>

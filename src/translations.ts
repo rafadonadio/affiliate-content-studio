@@ -2,6 +2,7 @@ export const translations = {
   en: {
     landing: {
       signIn: "Sign In",
+      signUp: "Sign Up",
       downloadApp: "Download App",
       poweredBy: "Powered by MAPER.TECH",
       title: "Automate Amazon Affiliates <br /> with a Robust Automation Infrastructure.",
@@ -74,6 +75,7 @@ export const translations = {
   es: {
     landing: {
       signIn: "Iniciar Sesión",
+      signUp: "Registrarse",
       downloadApp: "Descargar App",
       poweredBy: "Potenciado por MAPER.TECH",
       title: "Automatiza Afiliados de Amazon <br /> con una Robusta Infraestructura de Automatización.",
