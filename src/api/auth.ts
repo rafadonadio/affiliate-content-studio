@@ -34,42 +34,28 @@ router.post('/request-otp', async (req, res) => {
 
     await db.run('UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE email = ?', [otpCode, formattedExpiresAt, email]);
 
-    // Send Email via Titan Email
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.titan.email',
-      port: 587,
-      secure: false, // false for 587 (uses STARTTLS)
-      connectionTimeout: 10000, // 10 seconds
-      greetingTimeout: 5000, // 5 seconds
-      socketTimeout: 10000, // 10 seconds
-      auth: {
-        user: process.env.SMTP_USER || 'afs@maper.tech',
-        pass: process.env.SMTP_PASS || 'Regent@LakeNona',
-      },
-    });
-
-    const mailOptions = {
-      from: `"Affiliate Content Studio" <${process.env.SMTP_USER || 'afs@maper.tech'}>`,
-      to: email,
-      subject: 'Tu Código de Acceso / Your Access Code',
-      text: `Tu código de acceso es: ${otpCode}\n\nEste código expirará en 15 minutos.\n\nYour access code is: ${otpCode}\n\nThis code will expire in 15 minutes.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; background-color: #f9fafb; border-radius: 12px;">
-          <h2 style="color: #4f46e5;">Affiliate Content Studio</h2>
-          <p style="color: #374151; font-size: 16px;">Aquí tienes tu código de acceso para iniciar sesión:</p>
-          <div style="background-color: #e0e7ff; color: #4338ca; font-size: 32px; font-weight: bold; letter-spacing: 0.25em; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            ${otpCode}
-          </div>
-          <p style="color: #6b7280; font-size: 14px;">Este código expirará en 15 minutos. Si no solicitaste este acceso, puedes ignorar este mensaje.</p>
-        </div>
-      `
-    };
+    // Send Email via Hostinger Relay (mailer.php)
+    const relayUrl = 'https://afs.maper.tech/mailer.php';
+    const relaySecret = 'AFS_Secret_Relay_2030';
 
     try {
-      await transporter.sendMail(mailOptions);
-      console.log(`✉️ Correo OTP enviado a ${email}`);
+      const response = await fetch(relayUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: relaySecret,
+          email: email,
+          otpCode: otpCode
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Relay devolvió status: ${response.status}`);
+      }
+
+      console.log(`✉️ Correo OTP enviado a ${email} vía Hostinger Relay`);
     } catch (mailError) {
-      console.error('Error enviando correo:', mailError);
+      console.error('Error enviando correo por Relay:', mailError);
       // Fallback a consola en caso de error
       console.log(`\n\n========================================`);
       console.log(`🔐 OTP CODE FOR ${email}: ${otpCode}`);
