@@ -37,8 +37,8 @@ router.post('/request-otp', async (req, res) => {
     // Send Email via Titan Email
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.titan.email',
-      port: 465,
-      secure: true, // true for 465, false for other ports
+      port: 587,
+      secure: false, // false for 587 (uses STARTTLS)
       connectionTimeout: 10000, // 10 seconds
       greetingTimeout: 5000, // 5 seconds
       socketTimeout: 10000, // 10 seconds

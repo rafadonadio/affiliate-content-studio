@@ -26,10 +26,10 @@ export default function Paywall() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        toast.error("Failed to connect to the payment gateway.");
+        toast.error(`Stripe Error: ${data.error || "Failed to connect"}`);
       }
-    } catch (error) {
-      toast.error("An error occurred.");
+    } catch (error: any) {
+      toast.error(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
