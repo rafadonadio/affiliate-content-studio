@@ -15,29 +15,36 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS execution_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id VARCHAR(255),
   action VARCHAR(255) NOT NULL,
   details TEXT,
   status VARCHAR(50) NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS scheduled_posts (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id VARCHAR(255),
   product_link TEXT,
   caption TEXT,
   image_url TEXT,
   platform VARCHAR(50),
   scheduled_for DATETIME,
   status VARCHAR(50) DEFAULT 'pending',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS oauth_credentials (
-  platform VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(255),
+  platform VARCHAR(50),
   access_token TEXT NOT NULL,
   refresh_token TEXT,
   expires_at DATETIME,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, platform),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS platform_credentials (
@@ -49,29 +56,36 @@ CREATE TABLE IF NOT EXISTS platform_credentials (
 );
 
 CREATE TABLE IF NOT EXISTS app_configs (
-  platform VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(255),
+  platform VARCHAR(50),
   client_id VARCHAR(255) NOT NULL,
   client_secret VARCHAR(255) NOT NULL,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, platform),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS analytics (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id VARCHAR(255),
   post_id INT,
   platform VARCHAR(50),
   likes INT,
   clicks INT,
   comments INT,
   date DATE,
-  category VARCHAR(100)
+  category VARCHAR(100),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS short_links (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id VARCHAR(255),
   short_code VARCHAR(255) UNIQUE NOT NULL,
   original_url TEXT NOT NULL,
   clicks INT DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS subscriptions (

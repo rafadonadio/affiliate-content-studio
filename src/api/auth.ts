@@ -141,23 +141,46 @@ router.post('/promote', async (req, res) => {
   }
 });
 
-// Endpoint to update assistant settings
-router.patch('/assistant', async (req, res) => {
+export const authenticateToken = (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  const token = authHeader.split(' ')[1];
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-    
-    const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+export const authenticateQueryToken = (req: any, res: any, next: any) => {
+  const token = req.query.token || req.query.state; // We will pass token in state parameter for OAuth callback
+  if (!token) {
+    return res.status(401).send('Unauthorized');
+  }
+  
+  try {
+    const decoded = jwt.verify(token as string, JWT_SECRET) as any;
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).send('Invalid token');
+  }
+};
+
+// Endpoint to update assistant settings
+router.patch('/assistant', authenticateToken, async (req: any, res: any) => {
+  try {
     const { assistantName, assistantAvatar } = req.body;
     const db = await getDb();
     
     await db.run(
       "UPDATE users SET assistant_name = ?, assistant_avatar = ? WHERE id = ?",
-      [assistantName || 'Assistant', assistantAvatar || null, decoded.id]
+      [assistantName || 'Assistant', assistantAvatar || null, req.user.id]
     );
     
     res.json({ success: true, assistantName: assistantName || 'Assistant', assistantAvatar: assistantAvatar || null });

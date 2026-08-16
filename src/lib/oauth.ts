@@ -1,9 +1,9 @@
 import { AuthorizationCode } from 'simple-oauth2';
 import { getDb } from './db.js';
 
-export async function getClient(platform: string) {
+export async function getClient(userId: string, platform: string) {
   const db = await getDb();
-  const config = await db.get("SELECT * FROM app_configs WHERE platform = ?", [platform.toLowerCase()]);
+  const config = await db.get("SELECT * FROM app_configs WHERE user_id = ? AND platform = ?", [userId, platform.toLowerCase()]);
   
   if (!config || !config.client_id || !config.client_secret) {
     throw new Error(`Missing App Configuration for ${platform}. Please set it up in the Backoffice.`);
@@ -39,6 +39,13 @@ export async function getClient(platform: string) {
         authorizePath: 'https://accounts.google.com/o/oauth2/v2/auth',
       };
       break;
+    case 'tiktok':
+      clientConfig.auth = {
+        tokenHost: 'https://open.tiktokapis.com',
+        tokenPath: '/v2/oauth/token/',
+        authorizePath: 'https://www.tiktok.com/v2/auth/authorize/',
+      };
+      break;
     default: 
       throw new Error(`Unknown platform: ${platform}`);
   }
@@ -46,13 +53,14 @@ export async function getClient(platform: string) {
   return new AuthorizationCode(clientConfig);
 }
 
-export async function saveCredentials(platform: string, token: any) {
+export async function saveCredentials(userId: string, platform: string, token: any) {
   const db = await getDb();
   // Using INSERT ON DUPLICATE KEY UPDATE for MySQL
   await db.run(
-    `INSERT INTO oauth_credentials (platform, access_token, refresh_token, expires_at) 
-     VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE access_token = VALUES(access_token), refresh_token = VALUES(refresh_token), expires_at = VALUES(expires_at)`,
+    `INSERT INTO oauth_credentials (user_id, platform, access_token, refresh_token, expires_at) 
+     VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE access_token = VALUES(access_token), refresh_token = VALUES(refresh_token), expires_at = VALUES(expires_at)`,
     [
+      userId,
       platform.toLowerCase(),
       token.access_token,
       token.refresh_token || null,
@@ -61,14 +69,14 @@ export async function saveCredentials(platform: string, token: any) {
   );
 }
 
-export async function getValidToken(platform: string) {
+export async function getValidToken(userId: string, platform: string) {
   const db = await getDb();
-  const row = await db.get("SELECT * FROM oauth_credentials WHERE platform = ?", [platform.toLowerCase()]);
+  const row = await db.get("SELECT * FROM oauth_credentials WHERE user_id = ? AND platform = ?", [userId, platform.toLowerCase()]);
   if (!row) {
     throw new Error(`No credentials found for ${platform}`);
   }
 
-  const client = await getClient(platform);
+  const client = await getClient(userId, platform);
   let accessToken = client.createToken({
     access_token: row.access_token,
     refresh_token: row.refresh_token,
@@ -78,7 +86,7 @@ export async function getValidToken(platform: string) {
   if (accessToken.expired()) {
     try {
       accessToken = await accessToken.refresh();
-      await saveCredentials(platform, accessToken.token);
+      await saveCredentials(userId, platform, accessToken.token);
     } catch (error) {
       console.error(`Error refreshing token for ${platform}`, error);
       throw error;

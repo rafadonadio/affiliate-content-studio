@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Instagram, Youtube, CheckCircle, XCircle, Settings, ChevronDown, ChevronUp, Bot, Sparkles, MessageCircle } from 'lucide-react';
+import { Instagram, Youtube, CheckCircle, XCircle, Settings, ChevronDown, ChevronUp, Bot, Sparkles, MessageCircle, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { BillingSettings } from './BillingSettings';
 
@@ -376,7 +376,8 @@ export default function PlatformSettings() {
   }, []);
 
   const handleConnect = (platform: string) => {
-    window.open(`/auth/${platform.toLowerCase()}`, '_blank', 'width=600,height=700');
+    const token = localStorage.getItem('token');
+    window.open(`/auth/${platform.toLowerCase()}?token=${token}`, '_blank', 'width=600,height=700');
   };
 
   if (loading) return <div className="p-8 text-neutral-500">Loading settings...</div>;
@@ -476,6 +477,7 @@ export default function PlatformSettings() {
 
       <div className="space-y-4">
         {renderPlatformRow('instagram', 'Instagram', 'Business or Creator account required.', <Instagram size={24} />, 'bg-pink-100', 'text-pink-600')}
+        {renderPlatformRow('tiktok', 'TikTok', 'Publish videos or photo carousels to your TikTok feed.', <Video size={24} />, 'bg-black text-white', 'text-white')}
         {renderPlatformRow('pinterest', 'Pinterest', 'Publish pins directly to your boards.', 'P', 'bg-red-100', 'text-red-600')}
         {renderPlatformRow('youtube', 'YouTube', 'Publish images to the Community tab.', <Youtube size={24} />, 'bg-red-100', 'text-red-600')}
         {renderPlatformRow('whatsapp', 'WhatsApp (Assistant)', `Connect WhatsApp API to interact with ${user?.assistantName || 'Assistant'} via chat.`, <MessageCircle size={24} />, 'bg-green-100', 'text-green-600')}

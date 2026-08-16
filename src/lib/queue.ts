@@ -26,7 +26,7 @@ async function processQueue() {
       
       try {
         const { getValidToken } = await import('./oauth.js');
-        const token = await getValidToken(post.platform);
+        const token = await getValidToken(post.user_id, post.platform);
         
         console.log(`[Queue] Retrieved OAuth token for ${post.platform}: ${token.substring(0, 10)}...`);
         // Simulate actual publishing
@@ -36,8 +36,8 @@ async function processQueue() {
         await db.run("UPDATE scheduled_posts SET status = 'published' WHERE id = ?", [post.id]);
         
         await db.run(
-          "INSERT INTO execution_logs (action, details, status) VALUES (?, ?, ?)",
-          ["Scheduled Publish", `Post ID: ${post.id}, Platform: ${post.platform}`, "Success"]
+          "INSERT INTO execution_logs (user_id, action, details, status) VALUES (?, ?, ?, ?)",
+          [post.user_id, "Scheduled Publish", `Post ID: ${post.id}, Platform: ${post.platform}`, "Success"]
         );
         
         console.log(`[Queue] Post ${post.id} published successfully.`);

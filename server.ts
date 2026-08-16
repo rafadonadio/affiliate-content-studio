@@ -9,7 +9,7 @@ import { assistantRouter } from "./src/api/assistant.js";
 import { whatsappRouter } from "./src/api/whatsapp.js";
 import { stripeRouter } from "./src/api/stripe.js";
 import { stripeWebhookRouter } from "./src/api/stripe-webhook.js";
-import { authRouter } from "./src/api/auth.js";
+import { authRouter, authenticateToken, authenticateQueryToken } from "./src/api/auth.js";
 import { adminRouter } from "./src/api/admin.js";
 
 async function startServer() {
@@ -37,7 +37,7 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  app.post("/api/generate-caption", async (req, res) => {
+  app.post("/api/generate-caption", authenticateToken, async (req: any, res: any) => {
     try {
       const { productLink } = req.body;
       if (!productLink) {
@@ -58,8 +58,8 @@ async function startServer() {
       });
 
       await db.run(
-        "INSERT INTO execution_logs (action, details, status) VALUES (?, ?, ?)",
-        ["Generate Caption", `Product: ${productLink}`, "Success"]
+        "INSERT INTO execution_logs (user_id, action, details, status) VALUES (?, ?, ?, ?)",
+        [req.user.id, "Generate Caption", `Product: ${productLink}`, "Success"]
       );
 
       let caption = "";
@@ -76,14 +76,14 @@ async function startServer() {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
       await db.run(
-        "INSERT INTO execution_logs (action, details, status) VALUES (?, ?, ?)",
-        ["Generate Caption", `Error`, "Failed"]
+        "INSERT INTO execution_logs (user_id, action, details, status) VALUES (?, ?, ?, ?)",
+        [req.user.id, "Generate Caption", `Error`, "Failed"]
       );
       res.status(500).json({ error: "Failed to generate caption" });
     }
   });
 
-  app.post("/api/generate-image", async (req, res) => {
+  app.post("/api/generate-image", authenticateToken, async (req: any, res: any) => {
     try {
       const { prompt } = req.body;
       if (!prompt) {
@@ -115,8 +115,8 @@ async function startServer() {
       }
 
       await db.run(
-        "INSERT INTO execution_logs (action, details, status) VALUES (?, ?, ?)",
-        ["Generate Image", `Prompt: ${prompt.substring(0, 50)}...`, "Success"]
+        "INSERT INTO execution_logs (user_id, action, details, status) VALUES (?, ?, ?, ?)",
+        [req.user.id, "Generate Image", `Prompt: ${prompt.substring(0, 50)}...`, "Success"]
       );
 
       res.json({ image: `data:image/png;base64,${imageBase64}` });
@@ -125,18 +125,18 @@ async function startServer() {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
       await db.run(
-        "INSERT INTO execution_logs (action, details, status) VALUES (?, ?, ?)",
-        ["Generate Image", `Error`, "Failed"]
+        "INSERT INTO execution_logs (user_id, action, details, status) VALUES (?, ?, ?, ?)",
+        [req.user.id, "Generate Image", `Error`, "Failed"]
       );
       res.status(500).json({ error: "Failed to generate image" });
     }
   });
 
-  app.get("/api/logs", async (req, res) => {
+  app.get("/api/logs", authenticateToken, async (req: any, res: any) => {
     try {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
-      const logs = await db.all("SELECT * FROM execution_logs ORDER BY created_at DESC LIMIT 50");
+      const logs = await db.all("SELECT * FROM execution_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 50", [req.user.id]);
       res.json(logs);
     } catch (error) {
       console.error("Error fetching logs:", error);
@@ -145,11 +145,11 @@ async function startServer() {
   });
 
   // Scheduled posts API
-  app.get("/api/scheduled", async (req, res) => {
+  app.get("/api/scheduled", authenticateToken, async (req: any, res: any) => {
     try {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
-      const posts = await db.all("SELECT * FROM scheduled_posts ORDER BY scheduled_for ASC");
+      const posts = await db.all("SELECT * FROM scheduled_posts WHERE user_id = ? ORDER BY scheduled_for ASC", [req.user.id]);
       res.json(posts);
     } catch (error) {
       console.error("Error fetching scheduled posts:", error);
@@ -157,15 +157,15 @@ async function startServer() {
     }
   });
 
-  app.post("/api/scheduled", async (req, res) => {
+  app.post("/api/scheduled", authenticateToken, async (req: any, res: any) => {
     try {
       const { productLink, caption, imageUrl, platform, scheduledFor } = req.body;
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
 
       const result = await db.run(
-        "INSERT INTO scheduled_posts (product_link, caption, image_url, platform, scheduled_for) VALUES (?, ?, ?, ?, ?)",
-        [productLink, caption, imageUrl, platform, scheduledFor]
+        "INSERT INTO scheduled_posts (user_id, product_link, caption, image_url, platform, scheduled_for) VALUES (?, ?, ?, ?, ?, ?)",
+        [req.user.id, productLink, caption, imageUrl, platform, scheduledFor]
       );
 
       res.status(201).json({ id: result.lastID, message: "Post scheduled" });
@@ -175,7 +175,7 @@ async function startServer() {
     }
   });
 
-  app.patch("/api/scheduled/:id", async (req, res) => {
+  app.patch("/api/scheduled/:id", authenticateToken, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const { scheduledFor } = req.body;
@@ -183,8 +183,8 @@ async function startServer() {
       const db = await getDb();
 
       await db.run(
-        "UPDATE scheduled_posts SET scheduled_for = ? WHERE id = ?",
-        [scheduledFor, id]
+        "UPDATE scheduled_posts SET scheduled_for = ? WHERE id = ? AND user_id = ?",
+        [scheduledFor, id, req.user.id]
       );
 
       // Note: In a real app we'd need to remove the old job and add a new one in BullMQ.
@@ -197,13 +197,13 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/scheduled/:id", async (req, res) => {
+  app.delete("/api/scheduled/:id", authenticateToken, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
 
-      await db.run("DELETE FROM scheduled_posts WHERE id = ?", [id]);
+      await db.run("DELETE FROM scheduled_posts WHERE id = ? AND user_id = ?", [id, req.user.id]);
       res.json({ message: "Scheduled post deleted" });
     } catch (error) {
       console.error("Error deleting scheduled post:", error);
@@ -212,11 +212,11 @@ async function startServer() {
   });
 
   // Drafts Approval API
-  app.get("/api/drafts", async (req, res) => {
+  app.get("/api/drafts", authenticateToken, async (req: any, res: any) => {
     try {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
-      const posts = await db.all("SELECT * FROM scheduled_posts WHERE status = 'draft' ORDER BY created_at DESC");
+      const posts = await db.all("SELECT * FROM scheduled_posts WHERE status = 'draft' AND user_id = ? ORDER BY created_at DESC", [req.user.id]);
       res.json(posts);
     } catch (error) {
       console.error("Error fetching drafts:", error);
@@ -224,13 +224,13 @@ async function startServer() {
     }
   });
 
-  app.post("/api/drafts/:id/approve", async (req, res) => {
+  app.post("/api/drafts/:id/approve", authenticateToken, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
       
-      await db.run("UPDATE scheduled_posts SET status = 'pending' WHERE id = ?", [id]);
+      await db.run("UPDATE scheduled_posts SET status = 'pending' WHERE id = ? AND user_id = ?", [id, req.user.id]);
       res.json({ message: "Draft approved and scheduled for publishing" });
     } catch (error) {
       console.error("Error approving draft:", error);
@@ -261,21 +261,22 @@ async function startServer() {
   });
 
   // OAuth endpoints
-  app.get("/auth/:platform", async (req, res) => {
+  app.get("/auth/:platform", authenticateQueryToken, async (req: any, res: any) => {
     try {
       const { platform } = req.params;
       const { getClient } = await import("./src/lib/oauth.js");
-      const client = await getClient(platform);
+      const client = await getClient(req.user.id, platform);
       
       let scope = '';
       if (platform === 'youtube') scope = 'https://www.googleapis.com/auth/youtube.force-ssl';
       else if (platform === 'instagram') scope = 'instagram_basic,instagram_content_publish';
       else if (platform === 'pinterest') scope = 'boards:read,pins:write';
+      else if (platform === 'tiktok') scope = 'user.info.basic,video.publish,video.upload';
 
       const authorizationUri = client.authorizeURL({
         redirect_uri: `http://localhost:${PORT}/auth/${platform}/callback`,
         scope,
-        state: '3(#0/!~',
+        state: req.query.token as string, // Pass token through state to maintain session
         ...(platform === 'youtube' ? { access_type: 'offline', prompt: 'consent' } : {})
       });
 
@@ -286,12 +287,12 @@ async function startServer() {
     }
   });
 
-  app.get("/auth/:platform/callback", async (req, res) => {
+  app.get("/auth/:platform/callback", authenticateQueryToken, async (req: any, res: any) => {
     try {
       const { platform } = req.params;
       const { code } = req.query;
       const { getClient, saveCredentials } = await import("./src/lib/oauth.js");
-      const client = await getClient(platform);
+      const client = await getClient(req.user.id, platform);
 
       const tokenParams = {
         code: code as string,
@@ -299,7 +300,7 @@ async function startServer() {
       };
 
       const accessToken = await client.getToken(tokenParams);
-      await saveCredentials(platform, accessToken.token);
+      await saveCredentials(req.user.id, platform, accessToken.token);
 
       res.send(`<h1>Successfully authenticated with ${platform}!</h1><p>You can close this window and return to the app.</p><script>window.close();</script>`);
     } catch (error: any) {
@@ -308,20 +309,19 @@ async function startServer() {
     }
   });
 
-  app.get("/api/platforms/status", async (req, res) => {
+  app.get("/api/platforms/status", authenticateToken, async (req: any, res: any) => {
     try {
-      // In a real app we'd use the user ID from auth middleware
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
-      const rows = await db.all("SELECT platform FROM oauth_credentials");
+      const rows = await db.all("SELECT platform FROM oauth_credentials WHERE user_id = ?", [req.user.id]);
       let connected = rows.map((r: any) => r.platform);
       
-      const configRows = await db.all("SELECT platform FROM app_configs");
+      const configRows = await db.all("SELECT platform FROM app_configs WHERE user_id = ?", [req.user.id]);
       let configured = configRows.map((r: any) => r.platform);
 
       // Check whatsapp manager in-memory directly for testing, or check DB
       try {
-        const platRows = await db.all("SELECT platform FROM platform_credentials WHERE is_connected = 1");
+        const platRows = await db.all("SELECT platform FROM platform_credentials WHERE is_connected = 1 AND user_id = ?", [req.user.id]);
         connected = [...connected, ...platRows.map((r: any) => r.platform)];
       } catch (e) {
         // Table might not exist yet
@@ -339,7 +339,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/platforms/config", async (req, res) => {
+  app.post("/api/platforms/config", authenticateToken, async (req: any, res: any) => {
     try {
       const { platform, client_id, client_secret } = req.body;
       if (!platform || !client_id || !client_secret) {
@@ -348,8 +348,8 @@ async function startServer() {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
       await db.run(
-        "INSERT INTO app_configs (platform, client_id, client_secret) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE client_id = VALUES(client_id), client_secret = VALUES(client_secret)",
-        [platform.toLowerCase(), client_id, client_secret]
+        "INSERT INTO app_configs (user_id, platform, client_id, client_secret) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE client_id = VALUES(client_id), client_secret = VALUES(client_secret)",
+        [req.user.id, platform.toLowerCase(), client_id, client_secret]
       );
       res.json({ message: "App configuration saved successfully" });
     } catch (error) {
@@ -359,13 +359,13 @@ async function startServer() {
   });
 
   // Analytics endpoint
-  app.get("/api/analytics", async (req, res) => {
+  app.get("/api/analytics", authenticateToken, async (req: any, res: any) => {
     try {
       const { getDb } = await import("./src/lib/db.js");
       const db = await getDb();
       
       // Fetch historical data
-      const data = await db.all("SELECT * FROM analytics ORDER BY date ASC");
+      const data = await db.all("SELECT * FROM analytics WHERE user_id = ? ORDER BY date ASC", [req.user.id]);
       
       // Calculate totals
       let totalLikes = 0;
