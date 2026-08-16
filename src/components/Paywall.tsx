@@ -57,61 +57,33 @@ export default function Paywall() {
           {t.paywall.subtitle(user?.email || '')}
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
-          {/* Basic Plan */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col">
-            <h3 className="text-2xl font-bold mb-2">{t.paywall.basicPlan}</h3>
-            <div className="text-4xl font-bold mb-6">$29<span className="text-lg text-gray-400 font-normal">{t.paywall.month}</span></div>
-            <ul className="space-y-4 mb-8 text-left text-gray-300 flex-1">
-              {t.paywall.basicFeatures.map((f, i) => (
-                <li key={i} className="flex items-center"><Check className="h-5 w-5 mr-2 text-indigo-500" /> {f}</li>
-              ))}
-            </ul>
-            <button 
-              onClick={handleSubscribe} 
-              disabled={loading}
-              className="w-full py-3 rounded-lg border border-indigo-500 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all font-semibold"
-            >
-              {t.paywall.getStarted}
-            </button>
-          </div>
-
+        <div className="flex justify-center max-w-md w-full">
           {/* Pro Plan */}
-          <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-500/10 p-8 flex flex-col relative transform scale-105">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-500 text-white px-4 py-1 rounded-full text-sm font-bold flex items-center">
-              <Star className="h-4 w-4 mr-1" /> {t.paywall.mostPopular}
+          <div className="w-full rounded-2xl border-2 border-indigo-500 bg-indigo-500/10 p-8 flex flex-col relative transform hover:scale-105 transition-transform duration-300">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-500 text-white px-4 py-1 rounded-full text-sm font-bold flex items-center shadow-lg">
+              <Star className="h-4 w-4 mr-1" /> Premium Access
             </div>
-            <h3 className="text-2xl font-bold mb-2">{t.paywall.proPlan}</h3>
+            <h3 className="text-2xl font-bold mb-2 mt-2">{t.paywall.proPlan}</h3>
             <div className="text-4xl font-bold mb-6">$79<span className="text-lg text-gray-400 font-normal">{t.paywall.month}</span></div>
             <ul className="space-y-4 mb-8 text-left text-gray-300 flex-1">
               {t.paywall.proFeatures.map((f, i) => (
-                <li key={i} className="flex items-center"><Check className="h-5 w-5 mr-2 text-indigo-500" /> {f}</li>
+                <li key={i} className="flex items-center"><Check className="h-5 w-5 mr-2 text-indigo-500 flex-shrink-0" /> <span>{f}</span></li>
               ))}
             </ul>
             <button 
               onClick={handleSubscribe} 
               disabled={loading}
-              className="w-full py-3 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-all font-bold shadow-lg shadow-indigo-500/25"
+              className="w-full py-4 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 transition-all font-bold text-lg shadow-lg shadow-indigo-500/25 flex justify-center items-center"
             >
-              {loading ? t.paywall.redirecting : t.paywall.upgradeToPro}
-            </button>
-          </div>
-
-          {/* Agency Plan */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col">
-            <h3 className="text-2xl font-bold mb-2">{t.paywall.agencyPlan}</h3>
-            <div className="text-4xl font-bold mb-6">$199<span className="text-lg text-gray-400 font-normal">{t.paywall.month}</span></div>
-            <ul className="space-y-4 mb-8 text-left text-gray-300 flex-1">
-              {t.paywall.agencyFeatures.map((f, i) => (
-                <li key={i} className="flex items-center"><Check className="h-5 w-5 mr-2 text-indigo-500" /> {f}</li>
-              ))}
-            </ul>
-            <button 
-              onClick={handleSubscribe} 
-              disabled={loading}
-              className="w-full py-3 rounded-lg border border-white/20 hover:bg-white/10 transition-all font-semibold"
-            >
-              {t.paywall.contactSales}
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t.paywall.redirecting}
+                </span>
+              ) : t.paywall.upgradeToPro}
             </button>
           </div>
         </div>
